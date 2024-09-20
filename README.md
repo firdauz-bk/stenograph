@@ -15,5 +15,5 @@ Please install the required Python libraries
 ### 3. Image
 
 ## Credits & References
-UI/GUI - [TailwindCSS](https://tailwindcss.com/)
+UX/UI - [TailwindCSS](https://tailwindcss.com/)
 
