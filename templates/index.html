@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cypher Steg</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/2.3.0/alpine.js" integrity="sha512-nIwdJlD5/vHj23CbO2iHCXtsqzdTTx3e3uAmpTm4x2Y8xCIFyWu4cSIV8GaGe2UNVq86/1h9EgUZy7tn243qdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background: #0a0a0a;
+            color: #00ff00;
+        }
+        .neon-border {
+            box-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff, 0 0 20px #0ff;
+        }
+        .neon-text {
+            text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff, 0 0 20px #0ff;
+        }
+        .matrix-bg {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill-rule='evenodd'%3E%3Cg fill='%23007700' fill-opacity='0.1'%3E%3Cpath opacity='.5' d='M96 95h4v1h-4v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4h-9v4h-1v-4H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15v-9H0v-1h15V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h9V0h1v15h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9h4v1h-4v9zm-1 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm9-10v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-10 0v-9h-9v9h9zm-9-10h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9zm10 0h9v-9h-9v9z'/%3E%3Cpath d='M6 5V0H5v5H0v1h5v94h1V6h94V5H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+        .glitch {
+            animation: glitch 0.5s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 matrix-bg" x-data="{ activeTab: 'encode', resultVisible: false, resultText: '' }">
+    <div class="bg-black bg-opacity-80 p-8 rounded-xl neon-border w-full max-w-3xl">
+        <h1 class="text-4xl font-bold mb-8 text-center neon-text glitch">CypherSteg</h1>
+        
+        <div class="mb-6 flex justify-center space-x-4">
+            <button @click="activeTab = 'encode'" :class="{'bg-cyan-600 text-black': activeTab === 'encode', 'bg-gray-800 text-cyan-400': activeTab !== 'encode'}" class="px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:neon-border">
+                Encode
+            </button>
+            <button @click="activeTab = 'decode'" :class="{'bg-cyan-600 text-black': activeTab === 'decode', 'bg-gray-800 text-cyan-400': activeTab !== 'decode'}" class="px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:neon-border">
+                Decode
+            </button>
+        </div>
+        
+        <div x-show="activeTab === 'encode'" class="space-y-6">
+            <form id="encodeForm" class="space-y-4" @submit.prevent="handleEncode">
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <label for="payloadFile" class="block mb-2 font-semibold text-cyan-400">Payload (Text File):</label>
+                    <input type="file" id="payloadFile" name="payloadFile" accept=".txt" class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <label for="coverObject" class="block mb-2 font-semibold text-cyan-400">Cover Object:</label>
+                    <select id="coverObject" name="coverObject" class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+                        <option value="image">Image (PNG, GIF, BMP)</option>
+                        <option value="audio">Audio (MP3, WAV)</option>
+                        <option value="video">Video (MP4)</option>
+                    </select>
+                </div>
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <label for="coverFile" class="block mb-2 font-semibold text-cyan-400">Cover File:</label>
+                    <input type="file" id="coverFile" name="coverFile" class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+                </div>
+                <button type="submit" class="w-full bg-cyan-600 text-black px-6 py-3 rounded-lg font-semibold hover:bg-cyan-500 transition duration-300 ease-in-out transform hover:scale-105 hover:neon-border">
+                    Initiate Encoding Sequence
+                </button>
+            </form>
+        </div>
+        
+        <div x-show="activeTab === 'decode'" class="space-y-6">
+            <form id="decodeForm" class="space-y-4" @submit.prevent="handleDecode">
+                <div class="bg-gray-900 p-4 rounded-lg">
+                    <label for="stegoFile" class="block mb-2 font-semibold text-cyan-400">Stego File:</label>
+                    <input type="file" id="stegoFile" name="stegoFile" class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+                </div>
+                <button type="submit" class="w-full bg-cyan-600 text-black px-6 py-3 rounded-lg font-semibold hover:bg-cyan-500 transition duration-300 ease-in-out transform hover:scale-105 hover:neon-border">
+                    Execute Decryption Protocol
+                </button>
+            </form>
+        </div>
+        
+        <div x-show="resultVisible" class="mt-8 p-6 bg-gray-900 rounded-lg neon-border">
+            <h3 class="text-xl font-semibold mb-3 text-cyan-400">Operation Result:</h3>
+            <p x-text="resultText" class="text-green-400 font-mono"></p>
+        </div>
+    </div>
+
+    <script>
+        function handleEncode() {
+            // Placeholder for encode logic
+            this.resultVisible = true;
+            this.resultText = 'Encoding successful! Steganographic data embedded. Awaiting further instructions...';
+        }
+
+        function handleDecode() {
+            // Placeholder for decode logic
+            this.resultVisible = true;
+            this.resultText = 'Decryption complete. Extracted data: "The eagle has landed. Proceed with caution."';
+        }
+
+        document.getElementById('coverObject').addEventListener('change', function(e) {
+            const coverFile = document.getElementById('coverFile');
+            switch(e.target.value) {
+                case 'image':
+                    coverFile.accept = ".png,.gif,.bmp";
+                    break;
+                case 'audio':
+                    coverFile.accept = ".mp3,.wav";
+                    break;
+                case 'video':
+                    coverFile.accept = ".mp4";
+                    break;
+            }
+        });
+    </script>
+</body>
+</html>
