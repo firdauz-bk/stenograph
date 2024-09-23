@@ -1,8 +1,11 @@
 # Stenograph Project
 
-## Pre-requisite
+### Pre-requisite
 Please install the required Python libraries
-> pip install pip install -r requirements. txt
+> pip install pip install -r requirements.txt
+
+### Launch web application
+> python app.py
 
 ## Introduction
 
