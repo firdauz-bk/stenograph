@@ -8,7 +8,7 @@ from moviepy.editor import VideoFileClip, ImageSequenceClip
 video_file = "input_video.mp4"  # Input video file
 output_dir = "frames"    # Directory to save extracted frames
 data_file = "payload.txt"     # File containing data to hide
-start_frame = 1                         # Starting frame index for encoding
+start_frame = 0                         # Starting frame index for encoding
 end_frame = 30                           # Ending frame index for encoding
 output_video = "output_video.mp4"  # Output video file
 
@@ -116,7 +116,19 @@ def create_video_with_audio(frames_folder, audio_path, output_video):
     final_video = clip.set_audio(video.audio)
     final_video.write_videofile(output_video, codec='libx264')
 
+def clear_output_directory(output_folder):
+    if os.path.exists(output_folder):
+        for filename in os.listdir(output_folder):
+            file_path = os.path.join(output_folder, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+                print(f"Deleted frame: {file_path}")
+    else:
+        os.makedirs(output_folder)
+
+
 # Main Execution
+clear_output_directory(output_dir)
 extract_frames(video_file, output_dir)
 encode(start_frame, end_frame, data_file, output_dir)
 create_video_with_audio(output_dir, video_file, output_video)

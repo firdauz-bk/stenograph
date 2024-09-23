@@ -1,5 +1,6 @@
 import re
 from PIL import Image
+import os
 
 # Configuration Variables
 frame_start = 0                          # Starting frame index for decoding
