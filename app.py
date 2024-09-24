@@ -13,19 +13,60 @@ app.config['OUTPUT_FOLDER'] = 'encoded_files'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+#################### INDEX PAGE ########################
+@app.route('/')                                        # 
+def index():                                           #
+    return render_template('index.html')               #
+########################################################
 
-@app.route('/audio')
-def audio():
-    return render_template('encode_audio.html')
+################################# AUDIO ENCODING PAGE #####################################################################################
+                     # Render encode_audio.html #                                                                                         #
+@app.route('/audio')                                                                                                                      #
+def audio():                                                                                                                              #
+    return render_template('encode_audio.html')                                                                                           #
+                                                                                                                                          #
+@app.route('/encode_audio', methods=['POST'])                                                                                             #
+def encode_audio_route():                                                                                                                 #
+    if 'payload' not in request.files or 'cover' not in request.files:                                                                    #
+        flash('Both payload and cover files are required')                                                                                #
+        return redirect(url_for('audio'))                                                                                                 #
+                                                                                                                                          #
+    payload = request.files['payload']                                                                                                    #
+    cover = request.files['cover']                                                                                                        #
+    bit_size = int(request.form.get('bit_size', 1))                                                                                       #
+                                                                                                                                          #
+    if payload.filename == '' or cover.filename == '':                                                                                    #
+        flash('Both payload and cover files are required')                                                                                #
+        return redirect(url_for('audio'))                                                                                                 #
+                                                                                                                                          #
+    if payload and cover:                                                                                                                 #
+        payload_filename = secure_filename(payload.filename)                                                                              #
+        cover_filename = secure_filename(cover.filename)                                                                                  #
+                                                                                                                                          #
+        payload_path = os.path.join(app.config['UPLOAD_FOLDER'], payload_filename)                                                        #
+        cover_path = os.path.join(app.config['UPLOAD_FOLDER'], cover_filename)                                                            #
+                                                                                                                                          #
+        payload.save(payload_path)                                                                                                        #
+        cover.save(cover_path)                                                                                                            #
+        try:                                                                                                                              #
+            output_path = encode_audio(payload_path, cover_path, bit_size=bit_size, output_dir=app.config['OUTPUT_FOLDER'])               #
+            flash('Encoding successful')                                                                                                  #
+            return send_file(output_path, as_attachment=True)                                                                             #
+        except Exception as e:                                                                                                            #
+            flash(f'Encoding failed: {str(e)}')                                                                                           #
+            return redirect(url_for('audio'))                                                                                             #
+###########################################################################################################################################
 
-@app.route('/encode_audio', methods=['POST'])
-def encode_audio_route():
+################################# VIDEO ENCODING PAGE #####################################################################################
+@app.route('/video')
+def video():
+    return render_template('encode_video.html')
+
+@app.route('/encode_video', methods=['POST'])
+def encode_audio_video():
     if 'payload' not in request.files or 'cover' not in request.files:
         flash('Both payload and cover files are required')
-        return redirect(url_for('audio'))
+        return redirect(url_for('video'))
     
     payload = request.files['payload']
     cover = request.files['cover']
@@ -33,7 +74,7 @@ def encode_audio_route():
     
     if payload.filename == '' or cover.filename == '':
         flash('Both payload and cover files are required')
-        return redirect(url_for('audio'))
+        return redirect(url_for('video'))
     
     if payload and cover:
         payload_filename = secure_filename(payload.filename)
@@ -50,15 +91,10 @@ def encode_audio_route():
             return send_file(output_path, as_attachment=True)
         except Exception as e:
             flash(f'Encoding failed: {str(e)}')
-            return redirect(url_for('audio'))
+            return redirect(url_for('video'))
+###########################################################################################################################################
 
-def audio():
-    return render_template('encode_audio.html')
-
-@app.route('/video')
-def video():
-    return render_template('encode_video.html')
-
+################################# IMAGE ENCODING PAGE #####################################################################################
 @app.route('/image')
 def image():
     return render_template('encode_image.html')
@@ -96,7 +132,9 @@ def encode_image_route():
         except Exception as e:
             flash(f'Encoding failed: {str(e)}')
             return redirect(url_for('image'))
+###########################################################################################################################################
 
+################################# DECODING PAGE ###########################################################################################
 @app.route('/decode')
 def decode():
     return render_template('decode.html')

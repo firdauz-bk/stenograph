@@ -44,15 +44,15 @@
             <option value="audio">Audio (MP3, WAV)</option>
         </select>
     </div>
-        <form action="{{ url_for('encode_image_route') }}" method="post" enctype="multipart/form-data" class="space-y-6">
+        <form action="{{ url_for('encode_video_route') }}" method="post" enctype="multipart/form-data" class="space-y-6">
             <div class="bg-gray-900 p-4 rounded-lg">
                 <label for="payload" class="block mb-2 font-semibold text-cyan-400">Payload (Text File):</label>
                 <input type="file" id="payload" name="payload" accept=".txt" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
             </div>
 
             <div class="bg-gray-900 p-4 rounded-lg">
-                <label for="cover" class="block mb-2 font-semibold text-cyan-400">Cover Object: Image (PNG, GIF, BMP)</label>
-                <input type="file" id="cover" name="cover" accept=".png,.gif,.bmp,.mp3,.wav,.mp4" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+                <label for="cover" class="block mb-2 font-semibold text-cyan-400">Cover Object: Video (MP4)</label>
+                <input type="file" id="cover" name="cover" accept=".mp4" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
             </div>
 
             <button type="submit" class="w-full bg-cyan-600 text-black py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:bg-cyan-500">Initiate Encoding Sequence</button>
