@@ -22,7 +22,7 @@ Through this project, we hope to shed light on the practical applications of ste
 ## Stenography - Variety of media format
 ### 1. Image
 #### 1.1 Text to Image
-This section explains the **text-to-image encoding and decoding** functionality using LSB (Least Significant Bit) steganography. The program allows embedding and extracting secret messages within `.jpg` audio files.
+This section explains the **text-to-image encoding and decoding** functionality using LSB (Least Significant Bit) steganography. The program allows embedding and extracting secret messages within `.bmp` audio files.
    
 #### 1.1.1 Encoding Process
 
