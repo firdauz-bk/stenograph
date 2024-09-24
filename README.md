@@ -150,5 +150,5 @@ Please install the required Python libraries
 > python app.py
 
 ## Credits & References
-UX/UI - [TailwindCSS](https://tailwindcss.com/)
-FFMPEG - [FFMPEG](https://ffmpeg.org/download.html#build-windows)
+UX/UI - [TailwindCSS](https://tailwindcss.com/)  <br>
+FFMPEG - [FFMPEG](https://ffmpeg.org/download.html#build-windows)  <br>
