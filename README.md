@@ -1,5 +1,14 @@
 # Stenograph Project
 
+## Members 
+**Team Members** <br>
+Muhammad Azreen Bin Muhammad  <br>
+Chng Song Heng Aloysius <br>
+Muhammad Firdauz Bin Kamarulzaman <br>
+Timothy Zoe Delaya <br>
+Shaikh Mohamed Irfan  <br>
+Nicholas Tan Qin Sheng <br>
+
 ## Introduction
 
 ## Stenography - Variety of media format
