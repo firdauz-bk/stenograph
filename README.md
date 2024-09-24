@@ -14,7 +14,49 @@ Nicholas Tan Qin Sheng <br>
 ## Stenography - Variety of media format
 ### 1. Image
 #### 1.1 Text to Image
+This section explains the **text-to-image encoding and decoding** functionality using LSB (Least Significant Bit) steganography. The program allows embedding and extracting secret messages within `.jpg` audio files.
+   
+#### 1.1.1 Encoding Process
 
+1. **Reading the Image File**:
+   - The image file is opened using the `PIL` (Python Imaging Library) module. The image is then converted into a NumPy array to access and manipulate its pixel data.
+
+2. **Message Conversion**:
+   - The secret text message is converted into binary format. Each character in the message is represented as an 8-bit binary number. For example, the letter "A" is `01000001` in binary.
+
+3. **Appending the Message Terminator**:
+   - A special terminator, `###END###`, is appended to the message. This ensures that the program can recognize where the message ends during decoding.
+
+4. **Embedding the Message**:
+   - The binary message is embedded into the least significant bit (LSB) of each pixel’s Red (R), Green (G), and Blue (B) channels. The program modifies each channel's last bit to match the binary message's corresponding bit.
+   - Example: If a pixel has RGB values of `(124, 252, 180)`, and the next bit in the binary message is `1`, the Red channel is modified to `(125, 252, 180)`.
+
+5. **Checking Capacity**:
+   - The program checks whether the image has enough pixel capacity to store the entire message. If the message is too long, an error is raised, ensuring the message can be fully embedded.
+
+6. **Writing the Encoded Image**:
+   - The modified image is saved as a new file after embedding the message. This file now contains the hidden text message, but visually appears nearly identical to the original image.
+
+#### 1.1.2 Decoding Process
+
+1. **Reading the Encoded Image**:
+   - The encoded image is opened, and the pixel data is retrieved in the same manner as during encoding. Each pixel’s Red, Green, and Blue channels are analyzed to extract the binary message stored in their least significant bits.
+
+2. **Extracting the Binary Data**:
+   - The binary data is extracted from the LSB of each pixel’s color channels. These bits are then concatenated to form the binary representation of the hidden message.
+
+3. **Converting Binary to Text**:
+   - The binary message is converted back into readable text. Each set of 8 bits corresponds to one ASCII character in the original message.
+
+4. **Detecting the End Marker**:
+   - The decoded text is checked for the `###END###` marker. When found, the program extracts and returns the hidden message, discarding any data beyond the marker.
+
+#### 1.1.3 Notes
+
+- **Pixel Capacity**: The number of bits that can be stored in the image is determined by the number of pixels. Each pixel can store three bits (one per color channel). If the message is too large to fit within the image, an error is raised during encoding.
+- **Image Quality**: Modifying the least significant bits of pixels generally does not affect the visual quality of the image. However, larger messages may require more pixels, leading to slight visual differences.
+
+##### 1.1.4 Key Functions
 ### 2. Audio
 #### 2.1 Text to Audio
 This section explains the **text-to-audio encoding and decoding** functionality using LSB (Least Significant Bit) steganography. The program allows embedding and extracting secret messages within `.wav` audio files.
@@ -59,7 +101,38 @@ This section explains the **text-to-audio encoding and decoding** functionality 
   
 ### 3. Video
 #### 3.1 Text to Video
+##### 3.1.1 Encoding Process
+1. **Text to Video Conversion**:
+   - The secret text message is first converted into its binary representation. Each character is represented as an 8-bit binary number.
 
+2. **Encoding the Binary Data in Video Frames**:
+   - The video is read frame by frame using the `cv2.VideoCapture()` function.
+   - For each pixel in every frame, the least significant bit (LSB) of each color channel (RGB) is modified to hide one bit of the binary message.
+   - The `encode_frame()` function is responsible for modifying each pixel’s LSB with the binary data.
+   - A special **EOF marker** (`1111111111111110`) is added at the end of the binary data to signal the end of the message.
+
+3. **Writing the Encoded Video**:
+   - The modified frames are written into a new video file using the `cv2.VideoWriter()` object, resulting in a video that contains the hidden text within its pixel data.
+
+##### 3.1.2 Decoding Process
+
+1. **Reading the Encoded Video**:
+   - The video is read frame by frame, and the least significant bit of each pixel's color channel is extracted.
+
+2. **Extracting Binary Data**:
+   - The `decode_frame()` function retrieves the LSBs from the RGB channels of each pixel in the frame and constructs the binary data.
+
+3. **Detecting the EOF Marker**:
+   - The program looks for the **EOF marker** (`1111111111111110`) to know when to stop extracting bits.
+
+4. **Converting Binary Data to Text**:
+   - Once the EOF marker is reached, the binary data is converted back into readable text using the `binary_to_text()` function.
+
+##### 3.1.3 Notes
+
+- **Video Length**: Ensure that the video has enough frames to hide the entire message. If the message is too long, a warning will be issued.
+- **EOF Marker**: The EOF marker `1111111111111110` is used to detect when the hidden message ends. This ensures that the entire message is retrieved during decoding.
+  
 ## Setting up
 ### Pre-requisite
 Please install the required Python libraries
