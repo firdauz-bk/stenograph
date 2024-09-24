@@ -1,0 +1,28 @@
+/* styles.css */
+
+body {
+    font-family: 'Orbitron', sans-serif;
+    background: #0a0a0a;
+    color: #00ff00;
+}
+.neon-border {
+    box-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff, 0 0 20px #0ff;
+}
+.neon-text {
+    text-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 15px #0ff, 0 0 20px #0ff;
+}
+.matrix-bg {
+    background-image: url("../images/background.png");
+}
+
+@keyframes glitch {
+    0% { transform: translate(0) }
+    20% { transform: translate(-2px, 2px) }
+    40% { transform: translate(-2px, -2px) }
+    60% { transform: translate(2px, 2px) }
+    80% { transform: translate(2px, -2px) }
+    100% { transform: translate(0) }
+}
+.glitch {
+    animation: glitch 0.5s infinite;
+}

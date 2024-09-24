@@ -5,3 +5,4 @@ itsdangerous==2.2.0
 click==8.1.7
 MarkupSafe==2.1.5
 opencv-python==4.10.0.84
+numpy==1.24.3
