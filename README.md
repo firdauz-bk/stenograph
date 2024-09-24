@@ -151,4 +151,4 @@ Please install the required Python libraries
 
 ## Credits & References
 UX/UI - [TailwindCSS](https://tailwindcss.com/)
-
+FFMPEG - [FFMPEG](https://ffmpeg.org/download.html#build-windows)
