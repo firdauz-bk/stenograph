@@ -13,10 +13,13 @@ Nicholas Tan Qin Sheng <br>
 
 ## Stenography - Variety of media format
 ### 1. Image
+#### 1.1 Text to Image
 
 ### 2. Audio
+#### 2.1 Text to Audio
 
 ### 3. Video
+#### 3.1 Text to Video
 
 ## Setting up
 ### Pre-requisite
