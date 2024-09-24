@@ -4,7 +4,7 @@ import os
 from encoder.image_steno import encode_image, decode_image
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key_here'  # Set a secret key for flashing messages
+app.config['SECRET_KEY'] = 'ILOVEINF2005!'  # Set a secret key for flashing messages
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['OUTPUT_FOLDER'] = 'images'
 
