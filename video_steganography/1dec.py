@@ -1,16 +1,16 @@
-import re
+import cv2
+import numpy as np
 from PIL import Image
 import os
 
 # Configuration Variables
-frame_start = 0                          # Starting frame index for decoding
-frame_end = 30                           # Ending frame index for decoding
-frame_location = "frames"        # Path to the directory containing the frames
-output_file = "decoded_frame.txt" # Output file for the decoded text
+frame_start = 0
+frame_end = 40
+frame_location = "frames"
+output_file = "decoded_frame.txt"
+eof_marker = "$$$###$$$"
 
-# Decode the data in the image
 def decode(frame_number):
-    data = ''
     frame_path = f"{frame_location}/frame_{frame_number}.png"
     
     try:
@@ -19,41 +19,49 @@ def decode(frame_number):
         print(f"Frame {frame_number} not found.")
         return ""
     
-    imagedata = iter(image.getdata())
-    
+    data = ''
+    imgdata = iter(image.getdata())
+
     while True:
-        # Extract pixels
-        pixels = [value for _ in range(3) for value in imagedata.__next__()[:3]]
-        if not pixels:
-            break  # No more pixels to read
+        pixels = [value for value in next(imgdata, (0,0,0))[:3] +
+                  next(imgdata, (0,0,0))[:3] +
+                  next(imgdata, (0,0,0))[:3]]
         
-        # Build the binary string
-        binstr = ''.join('1' if pixel % 2 else '0' for pixel in pixels[:8])
-        
-        # Decode to character
-        char = chr(int(binstr, 2))
-        
-        # Debug output to check binary string and character
-        print(f"Frame {frame_number}: Binary = {binstr}, Char = {char}")
-        
-        if char == '$':  # Check for the EOF marker (adjust this if you're using a different marker)
+        # If we're out of pixels, break the loop
+        if pixels == [0,0,0,0,0,0,0,0,0]:
             break
+
+        binstr = ''.join(['1' if i % 2 != 0 else '0' for i in pixels[:8]])
+        data += chr(int(binstr, 2))
         
-        if re.match("[ -~]", char):  # Check if it's a printable character
-            data += char
+        if pixels[-1] % 2 != 0:
+            break
 
-    return data# Main Execution
+    return data
 
+# Main Execution
 print("Extracting Data...")
 with open(output_file, 'w', encoding='utf-8') as decoded_text_file:
     decoded_text_file.write('Decoded Text:\n')
+    full_data = ''
     
     for frame_number in range(frame_start, frame_end + 1):
         extracted_data = decode(frame_number)
         if extracted_data:
-            decoded_text_file.write(extracted_data)
+            full_data += extracted_data
             print(f"Data found in Frame {frame_number}")
+            print(f"Sample decoded text from this frame: {extracted_data[:50]}...")
+            if eof_marker in full_data:
+                print("EOF marker found. Stopping extraction.")
+                break
         else:
             print(f"No data found in Frame {frame_number}")
 
+    # Remove everything after the EOF marker
+    if eof_marker in full_data:
+        full_data = full_data.split(eof_marker)[0]
+    
+    decoded_text_file.write(full_data)
+
 print("\nExtraction Complete! Decoded text saved to", output_file)
+print(full_data)

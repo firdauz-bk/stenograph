@@ -9,8 +9,9 @@ video_file = "input_video.mp4"  # Input video file
 output_dir = "frames"    # Directory to save extracted frames
 data_file = "payload.txt"     # File containing data to hide
 start_frame = 0                         # Starting frame index for encoding
-end_frame = 30                           # Ending frame index for encoding
+end_frame = 40                           # Ending frame index for encoding
 output_video = "output_video.mp4"  # Output video file
+eof_marker = "$$$###$$$"
 
 # Function to extract frames from video
 def extract_frames(video_path, output_folder):
@@ -88,6 +89,9 @@ def encode(start, end, data, frame_loc):
         print("\nFile to hide not found! Exiting...")
         return
     
+    # Append the EOF marker
+    filedata += eof_marker
+    
     datapoints = math.ceil(len(filedata) / total_frame)
     counter = start
     print("Performing Steganography...")
@@ -98,7 +102,7 @@ def encode(start, end, data, frame_loc):
         try:
             image = Image.open(numbering, 'r')
         except FileNotFoundError:
-            print(f"\n{counter}.png not found! Exiting...")
+            print(f"frame_\n{counter}.png not found! Exiting...")
             return
         newimage = image.copy()
         encoder(newimage, encodetext)
