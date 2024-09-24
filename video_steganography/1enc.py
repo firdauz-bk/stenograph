@@ -6,10 +6,10 @@ from moviepy.editor import VideoFileClip, ImageSequenceClip
 
 # Configuration Variables
 video_file = "input_video.mp4"  # Input video file
-output_dir = "frames"    # Directory to save extracted frames
-data_file = "payload.txt"     # File containing data to hide
-start_frame = 0                         # Starting frame index for encoding
-end_frame = 40                           # Ending frame index for encoding
+output_dir = "frames"            # Directory to save extracted frames
+data_file = "payload.txt"        # File containing data to hide
+start_frame = 0                  # Starting frame index for encoding
+end_frame = 40                    # Ending frame index for encoding
 output_video = "output_video.mp4"  # Output video file
 eof_marker = "$$$###$$$"
 
@@ -79,7 +79,6 @@ def encoder(newimage, data):
             x += 1
 
 # Function to perform encoding
-
 def encode(start, end, data, frame_loc):
     total_frame = end - start + 1
     try:
@@ -102,7 +101,7 @@ def encode(start, end, data, frame_loc):
         try:
             image = Image.open(numbering, 'r')
         except FileNotFoundError:
-            print(f"frame_\n{counter}.png not found! Exiting...")
+            print(f"\n{counter}.png not found! Exiting...")
             return
         newimage = image.copy()
         encoder(newimage, encodetext)
@@ -111,9 +110,9 @@ def encode(start, end, data, frame_loc):
     print("Encoding complete!")
 
 # Function to combine frames back into a video with audio
-def create_video_with_audio(frames_folder, audio_path, output_video):
+def create_video_with_audio(frames_folder, audio_path, output_video, fps):
     frame_files = [os.path.join(frames_folder, f) for f in sorted(os.listdir(frames_folder), key=lambda x: int(x.split('_')[1].split('.')[0]))]
-    clip = ImageSequenceClip(frame_files, fps=30)  # Adjust fps as needed
+    clip = ImageSequenceClip(frame_files, fps=fps)  # Use the original fps
     video = VideoFileClip(audio_path)
     
     # Combine video and audio
@@ -130,9 +129,14 @@ def clear_output_directory(output_folder):
     else:
         os.makedirs(output_folder)
 
-
 # Main Execution
 clear_output_directory(output_dir)
 extract_frames(video_file, output_dir)
+
+# Get the frame rate of the original video
+cap = cv2.VideoCapture(video_file)
+fps = cap.get(cv2.CAP_PROP_FPS)
+cap.release()
+
 encode(start_frame, end_frame, data_file, output_dir)
-create_video_with_audio(output_dir, video_file, output_video)
+create_video_with_audio(output_dir, video_file, output_video, fps)  # Pass the fps to the function
