@@ -10,6 +10,14 @@ Shaikh Mohamed Irfan  <br>
 Nicholas Tan Qin Sheng <br>
 
 ## Introduction
+Steganography is the art and science of hiding information within other non-secret data, enabling secure communication without drawing attention to the existence of the hidden message. This project explores steganography techniques across various media formats, specifically focusing on image, audio, and video files. By employing Least Significant Bit (LSB) encoding, we aim to demonstrate how secret messages can be embedded within these formats while maintaining their original quality and appearance.
+
+The primary goals of this project are:
+1. To develop robust encoding and decoding methods for text messages hidden in images, audio, and video files.
+2. To analyze the effectiveness and capacity of different media formats for storing hidden data.
+3. To create a user-friendly web application that allows users to easily encode and decode messages using these techniques.
+
+Through this project, we hope to shed light on the practical applications of steganography in secure communication, digital rights management, and data protection.
 
 ## Stenography - Variety of media format
 ### 1. Image
