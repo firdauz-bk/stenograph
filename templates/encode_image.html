@@ -28,6 +28,14 @@
             Decode
         </a>
     </div>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div class="bg-red-500 text-white p-4 mb-4 rounded">
+            {{ messages[0] }}
+        </div>
+    {% endif %}
+{% endwith %}
+
     <div class="bg-gray-900 p-4 rounded-lg">
         <label for="coverObject" class="block mb-2 font-semibold text-cyan-400">Cover Object:</label>
         <select id="coverObject" name="coverObject" onchange="handleCoverObjectChange(this)" class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
@@ -36,14 +44,6 @@
             <option value="video">Video (MP4)</option>
         </select>
     </div>
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="bg-red-500 text-white p-4 mb-4 rounded">
-                    {{ messages[0] }}
-                </div>
-            {% endif %}
-        {% endwith %}
-
         <form action="{{ url_for('encode_image_route') }}" method="post" enctype="multipart/form-data" class="space-y-6">
             <div class="bg-gray-900 p-4 rounded-lg">
                 <label for="payload" class="block mb-2 font-semibold text-cyan-400">Payload (Text File):</label>
@@ -52,7 +52,7 @@
 
             <div class="bg-gray-900 p-4 rounded-lg">
                 <label for="cover" class="block mb-2 font-semibold text-cyan-400">Cover Object: Image (PNG, GIF, BMP)</label>
-                <input type="file" id="cover" name="cover" accept=".png,.gif,.bmp,.mp3,.wav,.mp4" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+                <input type="file" id="cover" name="cover" accept=".png,.gif,.bmp" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
             </div>
 
             <button type="submit" class="w-full bg-cyan-600 text-black py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:bg-cyan-500">Initiate Encoding Sequence</button>
