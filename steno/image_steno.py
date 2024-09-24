@@ -30,7 +30,7 @@ def encode_image(image_path, text_file, output_image):
     if binary_index < binary_len:
         raise ValueError("The message is too long to be encoded in the image.")
 
-    output_dir = "images"
+    output_dir = "encoded"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 

@@ -7,7 +7,7 @@ from steno.audio_steno import encode_audio, decode_audio
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ILOVEINF2005!'  # Set a secret key for flashing messages
 app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['OUTPUT_FOLDER'] = 'images'
+app.config['OUTPUT_FOLDER'] = 'encoded_files'
 
 # Ensure the upload and output folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -44,16 +44,10 @@ def encode_audio_route():
         
         payload.save(payload_path)
         cover.save(cover_path)
-        
-        output_filename = f"encoded_{cover_filename}"
-        
-        #output_path = os.path.join(app.config['OUTPUT_FOLDER'], output_filename)
-        
         try:
-            output_path = encode_audio(cover_path, payload_path, bit_size=bit_size)
+            output_path = encode_audio(payload_path, cover_path, bit_size=bit_size, output_dir=app.config['OUTPUT_FOLDER'])
             flash('Encoding successful')
             return send_file(output_path, as_attachment=True)
-        
         except Exception as e:
             flash(f'Encoding failed: {str(e)}')
             return redirect(url_for('audio'))

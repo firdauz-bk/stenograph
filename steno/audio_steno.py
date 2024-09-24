@@ -1,6 +1,8 @@
+import os
 import wave
+from pathlib import Path
 
-def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1):
+def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: str = "encoded"):
     # Ensure bit_size is between 1 and 8, as a byte has 8 bits
     if not (1 <= bit_size <= 8):
         raise ValueError("bit_size must be between 1 and 8")
@@ -30,11 +32,16 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1):
 
     # Create a new wave file with the modified frames
     frame_modified = bytes(frame_bytes)
-    new_audio = wave.open('Encoded.wav', 'wb')
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    output_path = output_dir / f"encoded_{os.path.basename(audio_file)}"
+    new_audio = wave.open(str(output_path), 'wb')
     new_audio.setparams(audio.getparams())
     new_audio.writeframes(frame_modified)
     new_audio.close()
     audio.close()
+
+    return str(output_path)
 
 def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None) -> str:
     # Ensure bit_size is between 1 and 8
@@ -63,10 +70,3 @@ def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None
             file.write(decoded_audio)
 
     return decoded_audio
-
-# Example usage:
-#ncode_audio("payload.txt", "Music.wav", bit_size=1)  # You can specify any bit_size between 1 and 8
-#decoded_message = decode_audio("Encoded.wav", bit_size=1, output_txt_file="decoded_message.txt")
-
-# Output the decoded message
-#print(f"Decoded message is: {decoded_message}")
