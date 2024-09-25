@@ -4,8 +4,7 @@ from PIL import Image
 import os
 
 # Configuration Variables
-frame_start = 0
-frame_end = 40
+frame_number = 10           # Frame index for decoding (change this as needed)
 frame_location = "frames"
 output_file = "decoded_frame.txt"
 eof_marker = "$$$###$$$"
@@ -45,17 +44,16 @@ with open(output_file, 'w', encoding='utf-8') as decoded_text_file:
     decoded_text_file.write('Decoded Text:\n')
     full_data = ''
     
-    for frame_number in range(frame_start, frame_end + 1):
-        extracted_data = decode(frame_number)
-        if extracted_data:
-            full_data += extracted_data
-            print(f"Data found in Frame {frame_number}")
-            print(f"Sample decoded text from this frame: {extracted_data[:50]}...")
-            if eof_marker in full_data:
-                print("EOF marker found. Stopping extraction.")
-                break
-        else:
-            print(f"No data found in Frame {frame_number}")
+    extracted_data = decode(frame_number)
+    if extracted_data:
+        full_data += extracted_data
+        print(f"Data found in Frame {frame_number}")
+        print(f"Sample decoded text from this frame: {extracted_data[:50]}...")
+        
+        if eof_marker in full_data:
+            print("EOF marker found. Stopping extraction.")
+    else:
+        print(f"No data found in Frame {frame_number}")
 
     # Remove everything after the EOF marker
     if eof_marker in full_data:
