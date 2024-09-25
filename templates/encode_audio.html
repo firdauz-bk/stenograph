@@ -80,7 +80,10 @@
         function limitBitSize(input) {
             if (input.value > 8) {
                 input.value = 8;
-        }
+            }
+            if (input.value < 1) {
+                input.value = 1;
+            }
     }
     </script>
 </body>
