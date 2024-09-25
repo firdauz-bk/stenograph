@@ -63,7 +63,7 @@ def video():
     return render_template('encode_video.html')
 
 @app.route('/encode_video', methods=['POST'])
-def encode_audio_video():
+def encode_video_route():
     if 'payload' not in request.files or 'cover' not in request.files:
         flash('Both payload and cover files are required')
         return redirect(url_for('video'))
