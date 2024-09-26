@@ -5,11 +5,11 @@ from PIL import Image
 from moviepy.editor import VideoFileClip, ImageSequenceClip
 
 # Configuration Variables
-video_file = "input.mp4"  # Input video file
+video_file = "input.mkv"  # Input video file
 output_dir = "frames"      # Directory to save extracted frames
 data_file = "payload.txt"  # File containing data to hide
 target_frame = 10           # Frame index for encoding (change this as needed)
-output_video = "output_video.mp4"  # Output video file
+output_video = "output_video.mkv"  # Output video file
 eof_marker = "$$$###$$$"
 
 # Function to extract frames from video
@@ -42,25 +42,37 @@ def generateData(data):
     return [format(ord(i), '08b') for i in data]
 
 # Modify pixels according to encoding data
-def modifyPixel(pixel, data):
+def modifyPixel(pixel, data, num_bits=3):
     datalist = generateData(data)
     lengthofdata = len(datalist)
     imagedata = iter(pixel)
     
     for i in range(lengthofdata):
+        # Get the next 9 pixel values
         pixel = [value for value in imagedata.__next__()[:3] + imagedata.__next__()[:3] + imagedata.__next__()[:3]]
         
-        for j in range(0, 8):
-            if (datalist[i][j] == '0' and pixel[j] % 2 != 0):
-                pixel[j] -= 1
-            elif (datalist[i][j] == '1' and pixel[j] % 2 == 0):
-                pixel[j] += 1 if pixel[j] == 0 else -1
+        for j in range(0, 8):  # Encoding 1 byte (8 bits) of data into the pixels
+            # Extract the j-th bit from the current byte of data
+            bit_to_encode = int(datalist[i][j])
+            
+            # Modify the pixel by adjusting the least significant bits according to num_bits
+            for b in range(num_bits):
+                if (bit_to_encode == 0 and pixel[j] & (1 << b) != 0):
+                    pixel[j] -= (1 << b)  # Clear the b-th least significant bit
+                elif (bit_to_encode == 1 and pixel[j] & (1 << b) == 0):
+                    pixel[j] += (1 << b)  # Set the b-th least significant bit
         
+        # Mark the end of the data
         if (i == lengthofdata - 1):
-            pixel[-1] -= 1 if pixel[-1] % 2 == 0 else 0
+            # Mark the end of the data by setting the LSB of the last pixel to 1
+            for b in range(num_bits):
+                pixel[-1] |= (1 << b)
         else:
-            pixel[-1] -= 1 if pixel[-1] % 2 != 0 else 0
-        
+            # Otherwise, ensure the LSB of the last pixel is 0
+            for b in range(num_bits):
+                pixel[-1] &= ~(1 << b)
+
+        # Return the modified pixels
         pixel = tuple(pixel)
         yield pixel[0:3]
         yield pixel[3:6]
@@ -103,6 +115,8 @@ def encode(target_frame, data, frame_loc):
     newimage.save(numbering, 'PNG')
     print("Encoding complete!")
 
+
+
 # Function to combine frames back into a video with audio
 def create_video_with_audio(frames_folder, audio_path, output_video, fps):
     frame_files = [os.path.join(frames_folder, f) for f in sorted(os.listdir(frames_folder), key=lambda x: int(x.split('_')[1].split('.')[0]))]
@@ -111,7 +125,12 @@ def create_video_with_audio(frames_folder, audio_path, output_video, fps):
     
     # Combine video and audio
     final_video = clip.set_audio(video.audio)
-    final_video.write_videofile(output_video, codec='libx264')
+    
+    # Ensure the output file has .avi extension
+    output_video = output_video.rsplit('.', 1)[0] + '.mkv'
+    
+    # Write directly to AVI using Huffyuv codec
+    final_video.write_videofile(output_video, codec='ffv1')
 
 def clear_output_directory(output_folder):
     if os.path.exists(output_folder):
@@ -135,3 +154,4 @@ cap.release()
 # Encode the message into the specified frame
 encode(target_frame, data_file, output_dir)
 create_video_with_audio(output_dir, video_file, output_video, fps)  # Pass the fps to the function
+clear_output_directory(output_dir)
