@@ -5,12 +5,11 @@ from PIL import Image
 from moviepy.editor import VideoFileClip, ImageSequenceClip
 
 # Configuration Variables
-video_file = "input_video.mp4"  # Input video file
+video_file = "input.avi"  # Input video file
 output_dir = "frames"            # Directory to save extracted frames
 data_file = "payload.txt"        # File containing data to hide
-start_frame = 0                  # Starting frame index for encoding
-end_frame = 40                    # Ending frame index for encoding
-output_video = "output_video.mp4"  # Output video file
+frame = 10
+output_video = "output.avi"  # Output video file
 eof_marker = "$$$###$$$"
 
 # Function to extract frames from video
@@ -38,76 +37,55 @@ def extract_frames(video_path, output_folder):
     cap.release()
     print("Frame extraction complete!")
 
-# Convert encoding data into 8-bit binary ASCII
 def generateData(data):
-    newdata = []
-    for i in data:
-        newdata.append(format(ord(i), '08b'))
-    return newdata
+    # Read the text from the file
+    with open(data, 'r', encoding='utf8') as file:
+        text = file.read()
 
-# Modify pixels according to encoding data
-def modifyPixel(pixel, data):
-    datalist = generateData(data)
-    lengthofdata = len(datalist)
-    imagedata = iter(pixel)
-    for i in range(lengthofdata):
-        pixel = [value for value in imagedata.__next__()[:3] + imagedata.__next__()[:3] + imagedata.__next__()[:3]]
-        for j in range(0, 8):
-            if (datalist[i][j] == '0' and pixel[j] % 2 != 0):
-                pixel[j] -= 1
-            elif (datalist[i][j] == '1' and pixel[j] % 2 == 0):
-                pixel[j] += 1 if pixel[j] == 0 else -1
-        if (i == lengthofdata - 1):
-            pixel[-1] -= 1 if pixel[-1] % 2 == 0 else 0
-        else:
-            pixel[-1] -= 1 if pixel[-1] % 2 != 0 else 0
-        pixel = tuple(pixel)
-        yield pixel[0:3]
-        yield pixel[3:6]
-        yield pixel[6:9]
+    # Convert each character in the text to its binary representation
+    binary_string = ''.join(format(ord(char), '08b') for char in text)
 
-# Main encoding function
-def encoder(newimage, data):
-    w = newimage.size[0]
-    (x, y) = (0, 0)
-    for pixel in modifyPixel(newimage.getdata(), data):
-        newimage.putpixel((x, y), pixel)
-        if (x == w - 1):
-            x = 0
-            y += 1
-        else:
-            x += 1
+    # Convert the EOF marker to its binary representation
+    binary_eof_marker = ''.join(format(ord(char), '08b') for char in eof_marker)
 
-# Function to perform encoding
-def encode(start, end, data, frame_loc):
-    total_frame = end - start + 1
-    try:
-        with open(data) as fileinput:
-            filedata = fileinput.read()
-    except FileNotFoundError:
-        print("\nFile to hide not found! Exiting...")
-        return
+    # Append the EOF marker binary representation to the main binary string
+    return binary_string + binary_eof_marker
+
+def lsb_encode(frame, lsb_bits, text):
+    # Open the image
+    specFrame = 'frames/frame_' + str(frame) + '.png'
+    image = Image.open(specFrame)
+    image.save('pre_encoded.png')
+    pixels = image.load()
     
-    # Append the EOF marker
-    filedata += eof_marker
+    # Convert the message and EOF marker to binary
+    binary_message = generateData(text) 
     
-    datapoints = math.ceil(len(filedata) / total_frame)
-    counter = start
-    print("Performing Steganography...")
+    data_index = 0
+    total_bits = len(binary_message)
+
+    # Iterate through pixels to encode the message
+    for i in range(image.size[0]):
+        for j in range(image.size[1]):
+            if data_index < total_bits:
+                r, g, b = pixels[i, j]
+                
+                # Get the current pixel's red channel in binary
+                r_bin = format(r, '08b')
+                
+                # Replace the last 'lsb_bits' bits with the binary message bits
+                r_bin = r_bin[:-lsb_bits] + binary_message[data_index:data_index + lsb_bits]
+                pixels[i, j] = (int(r_bin, 2), g, b)  # Update pixel with new red channel value
+                
+                data_index += lsb_bits
+            
+            if data_index >= total_bits:
+                break  # Stop if all data is encoded
     
-    for convnum in range(0, len(filedata), datapoints):
-        numbering = os.path.join(frame_loc, f"frame_{counter}.png")
-        encodetext = filedata[convnum:convnum + datapoints]
-        try:
-            image = Image.open(numbering, 'r')
-        except FileNotFoundError:
-            print(f"\n{counter}.png not found! Exiting...")
-            return
-        newimage = image.copy()
-        encoder(newimage, encodetext)
-        newimage.save(numbering, 'PNG')
-        counter += 1
-    print("Encoding complete!")
+    # Save the image, overwriting the original
+    image.save(specFrame)
+    image.save('post_encoded.png')
+
 
 # Function to combine frames back into a video with audio
 def create_video_with_audio(frames_folder, audio_path, output_video, fps):
@@ -117,7 +95,13 @@ def create_video_with_audio(frames_folder, audio_path, output_video, fps):
     
     # Combine video and audio
     final_video = clip.set_audio(video.audio)
-    final_video.write_videofile(output_video, codec='libx264')
+    
+    # Ensure the output file has .avi extension
+    output_video = output_video.rsplit('.', 1)[0] + '.avi'
+    
+    # Write directly to AVI using Huffyuv codec
+    final_video.write_videofile(output_video, codec='ffv1')
+
 
 def clear_output_directory(output_folder):
     if os.path.exists(output_folder):
@@ -138,5 +122,6 @@ cap = cv2.VideoCapture(video_file)
 fps = cap.get(cv2.CAP_PROP_FPS)
 cap.release()
 
-encode(start_frame, end_frame, data_file, output_dir)
+lsb_encode(frame, 2, 'payload.txt')
 create_video_with_audio(output_dir, video_file, output_video, fps)  # Pass the fps to the function
+clear_output_directory(output_dir)

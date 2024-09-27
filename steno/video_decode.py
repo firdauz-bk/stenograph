@@ -4,64 +4,70 @@ from PIL import Image
 import os
 
 # Configuration Variables
-frame_start = 0
-frame_end = 40
+lsb_bits = 2
 frame_location = "frames"
-output_file = "decoded_frame.txt"
 eof_marker = "$$$###$$$"
-
-def decode(frame_number):
-    frame_path = f"{frame_location}/frame_{frame_number}.png"
+video = 'output.avi'
+def extract_frames(video_path, output_folder):
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
     
-    try:
-        image = Image.open(frame_path, 'r')
-    except FileNotFoundError:
-        print(f"Frame {frame_number} not found.")
-        return ""
+    cap = cv2.VideoCapture(video_path)
     
-    data = ''
-    imgdata = iter(image.getdata())
-
+    if not cap.isOpened():
+        print("Error: Could not open video.")
+        return
+    
+    frame_count = 0
     while True:
-        pixels = [value for value in next(imgdata, (0,0,0))[:3] +
-                  next(imgdata, (0,0,0))[:3] +
-                  next(imgdata, (0,0,0))[:3]]
-        
-        # If we're out of pixels, break the loop
-        if pixels == [0,0,0,0,0,0,0,0,0]:
+        ret, frame = cap.read()
+        if not ret:
             break
-
-        binstr = ''.join(['1' if i % 2 != 0 else '0' for i in pixels[:8]])
-        data += chr(int(binstr, 2))
         
-        if pixels[-1] % 2 != 0:
-            break
+        frame_filename = os.path.join(output_folder, f"frame_{frame_count}.png")
+        cv2.imwrite(frame_filename, frame)
+        frame_count += 1
+        print(f"Extracted frame {frame_count}")
+    
+    cap.release()
+    print("Frame extraction complete!")
 
-    return data
+def lsb_decode(frame, lsb_bits):
+    # Open the image
+    img_path = os.path.join(frame_location, f'frame_{frame}.png')
+    image = Image.open(img_path)
+    pixels = image.load()
+    
+    binary_message = ''
+    
+    for i in range(image.size[0]):
+        for j in range(image.size[1]):
+            r, g, b = pixels[i, j]
+            
+            # Extract LSBs from red channel
+            r_bin = format(r, '08b')
+            binary_message += r_bin[-lsb_bits:]
+    
+    # Split into 8-bit chunks and convert to characters
+    decoded_message = ''
+    for i in range(0, len(binary_message), 8):
+        char_bin = binary_message[i:i+8]
+        if len(char_bin) < 8:
+            continue  # Skip incomplete byte
+        decoded_char = chr(int(char_bin, 2))
+        decoded_message += decoded_char
+        
+        # Stop decoding if we hit the EOF marker
+        if decoded_message.endswith(eof_marker):  # Use the actual EOF marker
+            decoded_message = decoded_message[:-len(eof_marker)]
+            break
+    
+    return decoded_message
 
 # Main Execution
-print("Extracting Data...")
-with open(output_file, 'w', encoding='utf-8') as decoded_text_file:
-    decoded_text_file.write('Decoded Text:\n')
-    full_data = ''
-    
-    for frame_number in range(frame_start, frame_end + 1):
-        extracted_data = decode(frame_number)
-        if extracted_data:
-            full_data += extracted_data
-            print(f"Data found in Frame {frame_number}")
-            print(f"Sample decoded text from this frame: {extracted_data[:50]}...")
-            if eof_marker in full_data:
-                print("EOF marker found. Stopping extraction.")
-                break
-        else:
-            print(f"No data found in Frame {frame_number}")
+frame_number = 10  # Specify the frame you want to decode
+extract_frames(video, frame_location)
+decoded_data = lsb_decode(frame_number, lsb_bits)
 
-    # Remove everything after the EOF marker
-    if eof_marker in full_data:
-        full_data = full_data.split(eof_marker)[0]
-    
-    decoded_text_file.write(full_data)
-
-print("\nExtraction Complete! Decoded text saved to", output_file)
-print(full_data)
+# Print the decoded data
+print(f"Decoded Data from Frame {frame_number}:\n{decoded_data}")
