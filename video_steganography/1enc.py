@@ -83,6 +83,7 @@ def lsb_encode(frame, lsb_bits, text):
     
     # Save the image, overwriting the original
     image.save(specFrame)
+    image.save('post_encoded.png')
 
 
 # Function to combine frames back into a video with audio
