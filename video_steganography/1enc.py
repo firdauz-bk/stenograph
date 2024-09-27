@@ -55,6 +55,7 @@ def lsb_encode(frame, lsb_bits, text):
     # Open the image
     specFrame = 'frames/frame_' + str(frame) + '.png'
     image = Image.open(specFrame)
+    image.save('pre_encoded.png')
     pixels = image.load()
     
     # Convert the message and EOF marker to binary
