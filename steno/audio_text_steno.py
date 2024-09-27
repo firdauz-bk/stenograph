@@ -3,6 +3,26 @@ import wave
 from pathlib import Path
 from pydub import AudioSegment
 
+# Create function to convert audio file to wav
+def convert_to_wav(filename):
+    """Takes an audio file of non .wav format and converts it to .wav"""
+    try:
+        # Import audio file
+        audio = AudioSegment.from_file(filename)
+        
+        # Create new filename
+        new_filename = filename.rsplit(".", 1)[0] + ".wav"
+        
+        # Export file as .wav
+        audio.export(new_filename, format="wav")
+        print(f"Converting {filename} to {new_filename}...")
+        
+        return new_filename
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None
+    
+
 def convert_mp3_to_wav(mp3_path, wav_path):
     audio = AudioSegment.from_mp3(mp3_path)
     audio.export(wav_path, format="wav")
@@ -17,13 +37,26 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
     with open(txt_file, 'r') as file:
         txt = file.read()
 
-    if audio_file.endswith(".mp3"):
-        wav_path = "temp_audio.wav"  # Temporary path for the converted WAV file
-        convert_mp3_to_wav(audio_file, wav_path)
-        audio = wave.open(wav_path, mode="rb")
-    else:
+
+    try:
+        if not audio_file.endswith(".wav"):
+            #wav_path = "temp_audio.wav"  # Temporary path for the converted WAV file
+            wav_path = convert_to_wav(audio_file)
+            audio = wave.open(wav_path, mode="rb")
+        else:
         # Open the audio file
-        audio = wave.open(audio_file, mode="rb")
+            audio = wave.open(audio_file, mode="rb")
+    except:
+        print("Error with file type, please check")
+
+    
+    # if not audio_file.endswith(".wav"):
+    #     #wav_path = "temp_audio.wav"  # Temporary path for the converted WAV file
+    #     wav_path = convert_to_wav(audio_file)
+    #     audio = wave.open(wav_path, mode="rb")
+    # else:
+    #     # Open the audio file
+    #     audio = wave.open(audio_file, mode="rb")
 
 
     frame_bytes = bytearray(list(audio.readframes(audio.getnframes())))
@@ -57,6 +90,7 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
     return str(output_path)
 
 def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None) -> str:
+    print(audio_file)
     # Ensure bit_size is between 1 and 8
     if not (1 <= bit_size <= 8):
         raise ValueError("bit_size must be between 1 and 8")
@@ -85,7 +119,7 @@ def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None
     return decoded_audio
 
 # Example usage:
-encodedfile = encode_audio("payload.txt", "music.wav", bit_size=2)  # You can specify any bit_size between 1 and 8
+encodedfile = encode_audio("payload.txt", "music.mp3", bit_size=2)  # You can specify any bit_size between 1 and 8
 decoded_message = decode_audio(encodedfile, bit_size=2, output_txt_file="decoded_message.txt")
 
 # Output the decoded message
