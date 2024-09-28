@@ -1,90 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- Meta and Title -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cypher Steg</title>
-    
-    <!-- External CSS and JS Libraries -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Link to External CSS using url_for -->
+    <title>Stegno Team 03</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 matrix-bg" x-data="{ activeTab: 'encode', resultVisible: false, resultText: '' }">
-    <div class="bg-black bg-opacity-80 p-8 rounded-xl neon-border w-full max-w-3xl">
-        <h1 class="text-4xl font-bold mb-8 text-center neon-text glitch">CypherSteg</h1>
-
-    <div class="mb-6 flex justify-center space-x-4">
-        <a href="{{ url_for('index') }}" class="px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:neon-border
-            {% if request.endpoint == 'index' %} bg-cyan-600 text-black {% else %} bg-gray-800 text-cyan-400 {% endif %}">
-            Encode
-        </a>
-        <a href="{{ url_for('decode') }}" class="px-6 py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:neon-border
-            {% if request.endpoint == 'decode' %} bg-cyan-600 text-black {% else %} bg-gray-800 text-cyan-400 {% endif %}">
-            Decode
-        </a>
-    </div>
-    {% with messages = get_flashed_messages() %}
-    {% if messages %}
-        <div class="bg-red-500 text-white p-4 mb-4 rounded">
-            {{ messages[0] }}
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <nav class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-2xl font-bold text-hf-blue">CypherSteg</span>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <a href="{{ url_for('index') }}" class="nav-link">Encode</a>
+                    <a href="{{ url_for('decode') }}" class="nav-link ml-4">Decode</a>
+                </div>
+            </div>
         </div>
-    {% endif %}
-{% endwith %}
+    </nav>
 
-    <div class="bg-gray-900 p-4 rounded-lg">
-        <label for="coverObject" class="block mb-2 font-semibold text-cyan-400">Cover Object:</label>
-        <select id="coverObject" name="coverObject" onchange="handleCoverObjectChange(this)" class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
-            <option value="audio">Audio (MP3, WAV)</option>
-            <option value="image">Image (PNG, GIF, BMP)</option>
-            <option value="video">Video (MP4)</option>
-        </select>
-    </div>
-        <form action="{{ url_for('encode_audio_route') }}" method="post" enctype="multipart/form-data" class="space-y-6">
-            <div class="bg-gray-900 p-4 rounded-lg">
-                <label for="payload" class="block mb-2 font-semibold text-cyan-400">Payload (Text File):</label>
-                <input type="file" id="payload" name="payload" accept=".txt" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div class="px-4 py-6 sm:px-0">
+            <div class="bg-white shadow sm:rounded-lg">
+                <div class="px-4 py-5 sm:p-6">
+                    <div class="flex justify-center mb-6">
+                        <a href="{{ url_for('index') }}" class="nav-link text-4x4 font-bold mx-8 px-10 py-3 bg-blue-300 text-white rounded-lg hover:bg-blue-600 transition duration-300">
+                            <bold>Encode</bold>
+                        </a>
+                        <a href="{{ url_for('decode') }}" class="nav-link text-4x4 font-bold mx-8 px-10 py-3 bg-green-300 text-white rounded-lg hover:bg-green-600 transition duration-300">
+                            <bold>Decode</bold>
+                        </a>
+                    </div>
+                    <h2 class="text-lg leading-6 font-medium text-gray-900 mb-4">Encode Steganographic Message in Audio</h2>
+                    {% with messages = get_flashed_messages() %}
+                        {% if messages %}
+                            <div class="rounded-md bg-red-50 p-4 mb-4">
+                                <div class="flex">
+                                    <div class="flex-shrink-0">
+                                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div class="ml-3">
+                                        <h3 class="text-sm font-medium text-red-800">{{ messages[0] }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+
+                    <form action="{{ url_for('encode_audio_route') }}" method="post" enctype="multipart/form-data" class="space-y-6">
+                        <div>
+                            <label for="cover_object" class="block text-sm font-medium text-gray-700">Cover Object</label>
+                            <select id="cover_object" onchange="handleCoverObjectChange(this)" name="cover_object" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-hf-blue focus:border-hf-blue sm:text-sm rounded-md">
+                                <option value="audio">Audio (MP3, WAV)</option>
+                                <option value="image">Image (PNG, GIF, BMP)</option>
+                                <option value="video">Video (MP4)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="payload" class="block text-sm font-medium text-gray-700">Payload (.txt file)</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="payload" class="relative cursor-pointer bg-white rounded-md font-medium text-hf-blue hover:text-hf-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-hf-blue">
+                                            <span>Upload a file</span>
+                                            <input id="payload" name="payload" type="file" accept=".txt" class="sr-only">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Upload a .txt file</p>
+                                </div>
+                            </div>
+                            <br>
+                        <div>
+                            <label for="cover" class="block text-sm font-medium text-gray-700">Cover Object File (.wav, .mp3)</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="cover" class="relative cursor-pointer bg-white rounded-md font-medium text-hf-blue hover:text-hf-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-hf-blue">
+                                            <span>Upload a file</span>
+                                            <input id="cover" name="cover" type="file" accept=".mp3,.wav" class="sr-only">
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">Upload an audio file</p>
+                                </div>
+                            </div>
+                        </div>
+                        <br>
+                        <div>
+                            <label for="bit_size" class="block text-sm font-medium text-gray-700">Bit Size (1-8)</label>
+                            <div class="flex items-center space-x-4">
+                                <input type="range" name="bit_size" id="bit_size" min="1" max="8" value="1" class="slider" oninput="updateSliderValue(this.value)">
+                                <span id="slider_value" class="text-sm font-medium text-gray-700">4</span>
+                            </div>
+                        </div>
+                        <br>
+
+                        <div>
+                            <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-hf-blue hover:bg-hf-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-hf-blue">
+                                Encode
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
-
-            <div class="bg-gray-900 p-4 rounded-lg">
-                <label for="cover" class="block mb-2 font-semibold text-cyan-400">Cover Object: Image (MP3, WAV)</label>
-                <input type="file" id="cover" name="cover" accept=".mp3,.wav" required class="w-full border-2 border-cyan-600 rounded-lg p-2 bg-black text-cyan-400 focus:border-cyan-400 focus:ring focus:ring-cyan-400 transition">
-                <label for="coverObject" class="block mb-2 font-semibold text-cyan-400">Bit Size (1-8):</label>
-                <input type="number" name="bit_size" min="1" max="8" value="1" class="w-full bg-gray-800 text-gray-300 p-2 rounded-lg" onchange="limitBitSize(this)" required>
-            </div>
-
-            <button type="submit" class="w-full bg-cyan-600 text-black py-2 rounded-full font-semibold transition duration-300 ease-in-out hover:bg-cyan-500">Initiate Encoding Sequence</button>
-        </form>
+        </div>
     </div>
-
-    <script>
-        // Store the URLs generated by Flask
-        var urls = {
+    <script>        
+        var urls = 
+        {
             image: "{{ url_for('image') }}",
             audio: "{{ url_for('audio') }}",
             video: "{{ url_for('video') }}"
         };
-
-        function handleCoverObjectChange(selectElement) {
-            const coverObject = selectElement.value;
-            
-            if (coverObject && coverObject in urls) {
-                window.location.href = urls[coverObject];
-            }
-        }
-
-        function limitBitSize(input) {
-            if (input.value > 8) {
-                input.value = 8;
-            }
-            if (input.value < 1) {
-                input.value = 1;
-            }
-    }
     </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
