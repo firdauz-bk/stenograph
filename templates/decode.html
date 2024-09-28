@@ -31,14 +31,14 @@
                             <bold>Decode</bold>
                         </a>
                     </div>
-                    <h2 class="text-lg leading-6 font-medium text-gray-900 mb-4">Encode Steganography</h2>
+                    <h2 class="text-lg leading-6 font-medium text-gray-900 mb-4">Decode Steganography</h2>
                     <div>
                         <label for="cover_object" class="block text-sm font-medium text-gray-700">Cover Object</label>
                         <select id="cover_object" name="cover_object" onchange="handleCoverObjectChange(this)" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="">Please Choose your Object Media</option>
-                            <option value="audio">Audio (MP3, WAV)</option>
-                            <option value="image">Image (PNG, GIF, BMP)</option>
-                            <option value="video">Video (MP4)</option>
+                            <option value="">Please choose Decoding media</option>
+                            <option value="text">Extract Text</option>
+                            <option value="image">Extract Image</option>
+                            <option value="audio">Extract Audio</option>
                         </select>
                     </div>
                 </div>
@@ -48,9 +48,9 @@
     <script>        
         var urls = 
         {
-            image: "{{ url_for('image') }}",
-            audio: "{{ url_for('audio') }}",
-            video: "{{ url_for('video') }}"
+            text: "{{ url_for('decode_text_post') }}",
+            audio: "{{ url_for('decode_audio_post') }}",
+            image: "{{ url_for('decode_image_post') }}"
         };
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>

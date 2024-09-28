@@ -19,7 +19,7 @@ os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 #################### INDEX PAGE ########################
 @app.route('/')                                        
 def index():                                           
-    return render_template('index.html')               
+    return render_template('index.html')              
 
 ################################# AUDIO ENCODING PAGE #####################################################################################
 @app.route('/audio')
@@ -192,8 +192,12 @@ def encode_image_route():
 
 
 ################################# DECODING PAGE ###########################################################################################
+@app.route('/decoder')                                        
+def decode():                                           
+    return render_template('decode.html')  
+
 @app.route('/decode_text')
-def decode():
+def decode_text():
     return render_template('decode_text.html')
 
 @app.route('/decode_text', methods=['GET','POST'])
@@ -234,6 +238,22 @@ def decode_text_post():
             except Exception as e:
                 flash(f'Error decoding file: {str(e)}')
                 return redirect(request.url)
+
+@app.route('/decode_image')
+def decode_image():
+    return render_template('decode_image.html')
+
+@app.route('/decode_image', methods=['GET','POST'])
+def decode_image_post():
+    return render_template('decode_image.html')
+
+@app.route('/decode_audio')
+def decode_audio():
+    return render_template('decode_audio.html')
+
+@app.route('/decode_audio', methods=['GET','POST'])
+def decode_audio_post():
+    return render_template('decode_audio.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

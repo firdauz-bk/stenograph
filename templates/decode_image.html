@@ -35,8 +35,8 @@
                     <div>
                         <label for="cover_object" class="block text-sm font-medium text-gray-700">Cover Object</label>
                         <select id="cover_object" name="cover_object" onchange="handleCoverObjectChange(this)" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
-                            <option value="text">Extract Text</option>
                             <option value="image">Extract Image</option>
+                            <option value="text">Extract Text</option>
                             <option value="audio">Extract Audio</option>
                         </select>
                     </div>
@@ -59,7 +59,7 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form action="{{ url_for('decode_text_post') }}" method="post" enctype="multipart/form-data">
+                    <form action="{{ url_for('decode_image_post') }}" method="post" enctype="multipart/form-data">
                         <div class="mt-4">
                             <label for="decode_text" class="block text-sm font-medium text-gray-700">
                                 Stego File (Image, Audio, or Video)
