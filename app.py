@@ -125,7 +125,7 @@ def encode_image_route():
         output_filename = f"encoded_{cover_filename}"
         
         try:
-            output_path = encode_image(cover_path, payload_path, output_filename)
+            output_path = encode_image(cover_path, payload_path, output_filename, lsb_count=1)
             flash('Encoding successful')
             return send_file(output_path, as_attachment=True)
         
@@ -161,7 +161,7 @@ def decode_post():
             #### DETERMINE THE FILETYPE TO USE THEIR RESPECTIVE FUNCTION ####
                 file_extension = os.path.splitext(filename)[1].lower()
                 if file_extension in ['.png', '.gif', '.bmp', '.jpg']:
-                    decoded_message = decode_image(file_path)
+                    decoded_message = decode_image(file_path, lsb_count=1)
 
                 elif file_extension in ['.mp3', '.wav']:
                     bit_size = int(request.form.get('bit_size', 1))
