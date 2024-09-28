@@ -17,7 +17,7 @@
                 </div>
                 <div class="flex items-center">
                     <a href="{{ url_for('index') }}" class="nav-link">Encode</a>
-                    <a href="{{ url_for('decode') }}" class="nav-link ml-4">Decode</a>
+                    <a href="{{ url_for('decode_text_post') }}" class="nav-link ml-4">Decode</a>
                 </div>
             </div>
         </div>
@@ -31,7 +31,7 @@
                         <a href="{{ url_for('index') }}" class="nav-link text-4x4 font-bold mx-8 px-10 py-3 bg-blue-300 text-white rounded-lg hover:bg-blue-600 transition duration-300">
                             <bold>Encode</bold>
                         </a>
-                        <a href="{{ url_for('decode') }}" class="nav-link text-4x4 font-bold mx-8 px-10 py-3 bg-green-300 text-white rounded-lg hover:bg-green-600 transition duration-300">
+                        <a href="{{ url_for('decode_text_post') }}" class="nav-link text-4x4 font-bold mx-8 px-10 py-3 bg-green-300 text-white rounded-lg hover:bg-green-600 transition duration-300">
                             <bold>Decode</bold>
                         </a>
                     </div>
@@ -65,34 +65,34 @@
                         </div>
 
                         <div>
-                            <label for="payload" class="block text-sm font-medium text-gray-700">Payload (.txt file)</label>
+                            <label for="payload_image" class="block text-sm font-medium text-gray-700">Payload (.txt OR .wav file)</label>
                             <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                                 <div class="space-y-1 text-center">
                                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                     <div class="flex text-sm text-gray-600">
-                                        <label for="payload" class="relative cursor-pointer bg-white rounded-md font-medium text-hf-blue hover:text-hf-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-hf-blue">
+                                        <label for="payload_image" class="relative cursor-pointer bg-white rounded-md font-medium text-hf-blue hover:text-hf-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-hf-blue">
                                             <span>Upload a file</span>
-                                            <input id="payload" name="payload" type="file" accept=".txt" class="sr-only">
+                                            <input id="payload_image" name="payload_image" type="file" accept=".txt,.wav" class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
-                                    <p class="text-xs text-gray-500">Upload a .txt file</p>
+                                    <p class="text-xs text-gray-500">Upload a .txt OR .wav file</p>
                                 </div>
                             </div>
                             <br>
                         <div>
-                            <label for="cover" class="block text-sm font-medium text-gray-700">Cover Object File (.png, .bmp, .gif)</label>
+                            <label for="cover_image" class="block text-sm font-medium text-gray-700">Cover Object File (.png, .bmp, .gif)</label>
                             <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                                 <div class="space-y-1 text-center">
                                     <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                     <div class="flex text-sm text-gray-600">
-                                        <label for="cover" class="relative cursor-pointer bg-white rounded-md font-medium text-hf-blue hover:text-hf-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-hf-blue">
+                                        <label for="cover_image" class="relative cursor-pointer bg-white rounded-md font-medium text-hf-blue hover:text-hf-blue focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-hf-blue">
                                             <span>Upload a file</span>
-                                            <input id="cover" name="cover" type="file" accept=".mp3,.wav" class="sr-only">
+                                            <input id="cover_image" name="cover_image" type="file" accept=".mp3,.wav" class="sr-only">
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
@@ -102,7 +102,7 @@
                         </div>
                         <br>
                         <div>
-                            <label for="bit_size" class="block text-sm font-medium text-gray-700">Bit Size (1-8)</label>
+                            <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB count (1-8)</label>
                             <div class="flex items-center space-x-4">
                                 <input type="range" name="bit_size" id="bit_size" min="1" max="8" value="1" class="slider" oninput="updateSliderValue(this.value)">
                                 <span id="slider_value" class="text-sm font-medium text-gray-700">4</span>
