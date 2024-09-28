@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     // File upload preview and drag & drop for tex decoding
     setupFileUpload('decode_text', 'Upload an audio file', ['.mp3', '.wav', '.mp4', '.avi', '.png', '.bmp']);
+    setupFileUpload('decode_image', 'Upload an audio file', ['.mp3', '.wav']);
+    setupFileUpload('decode_audio', 'Upload an audio file', ['.png', '.bmp']);
 
     // Initialize slider value
     const slider = document.getElementById('bit_size');
