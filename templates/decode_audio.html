@@ -83,6 +83,14 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB count (1-8)</label>
+                            <div class="flex items-center space-x-4">
+                                <input type="range" name="bit_size" id="bit_size" min="1" max="8" value="1" class="slider" oninput="updateSliderValue(this.value)">
+                                <span id="slider_value" class="text-sm font-medium text-gray-700">4</span>
+                            </div>
+                        </div>
+
                         <div class="mt-4">
                             <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Decode

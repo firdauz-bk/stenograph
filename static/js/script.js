@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupFileUpload('cover_video', 'Upload a video file', ['.mp4', '.avi']);
     setupFileUpload('cover_image', 'Upload an image file', ['.png', '.bmp', '.gif']);
 
-    // File upload preview and drag & drop for tex decoding
-    setupFileUpload('decode_text', 'Upload an audio file', ['.mp3', '.wav', '.mp4', '.avi', '.png', '.bmp']);
-    setupFileUpload('decode_image', 'Upload an audio file', ['.mp3', '.wav']);
-    setupFileUpload('decode_audio', 'Upload an audio file', ['.png', '.bmp']);
+    // File upload preview and drag & drop for payload decoding
+    setupFileUpload('decode_payload_text', 'Upload file', ['.mp3', '.wav', '.mp4', '.avi', '.png', '.bmp']);
+    setupFileUpload('decode_payload_image', 'Upload an audio file', ['.mp3', '.wav']);
+    setupFileUpload('decode_payload_audio', 'Upload an image file', ['.png', '.bmp']);
 
     // Initialize slider value
     const slider = document.getElementById('bit_size');

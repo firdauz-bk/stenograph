@@ -95,10 +95,10 @@ def video():
 
 @app.route('/upload_video', methods=['POST'])
 def upload_video():
-    if 'video' not in request.files:
+    if 'cover_video' not in request.files:
         return jsonify({'error': 'No video file uploaded'}), 400
     
-    video = request.files['video']
+    video = request.files['cover_video']
     
     if video.filename == '':
         return jsonify({'error': 'No video file selected'}), 400
@@ -197,17 +197,17 @@ def decode():
     return render_template('decode.html')  
 
 @app.route('/decode_text')
-def decode_text():
+def decode_text_page():
     return render_template('decode_text.html')
 
 @app.route('/decode_text', methods=['GET','POST'])
 def decode_text_post():
     if request.method == 'POST':
-        if 'decode_text' not in request.files:
+        if 'decode_payload_text' not in request.files:
             flash('No file part')
             return redirect(request.url)
         
-        stego_file = request.files['decode_text']
+        stego_file = request.files['decode_payload_text']
         
         if stego_file.filename == '':
             flash('No selected file')
@@ -217,7 +217,7 @@ def decode_text_post():
             filename = secure_filename(stego_file.filename)
             file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             stego_file.save(file_path)
-            
+                    
             try:
             #### DETERMINE THE FILETYPE TO USE THEIR RESPECTIVE FUNCTION ####
                 file_extension = os.path.splitext(filename)[1].lower()
@@ -240,7 +240,7 @@ def decode_text_post():
                 return redirect(request.url)
 
 @app.route('/decode_image')
-def decode_image():
+def decode_image_page():
     return render_template('decode_image.html')
 
 @app.route('/decode_image', methods=['GET','POST'])
@@ -248,7 +248,7 @@ def decode_image_post():
     return render_template('decode_image.html')
 
 @app.route('/decode_audio')
-def decode_audio():
+def decode_audio_page():
     return render_template('decode_audio.html')
 
 @app.route('/decode_audio', methods=['GET','POST'])

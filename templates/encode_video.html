@@ -53,7 +53,7 @@
                         {% endif %}
                     {% endwith %}
 
-                    <form action="{{ url_for('encode_video_route') }}" method="post" enctype="multipart/form-data" class="space-y-6">
+                    <form action="{{ url_for('upload_video') }}" method="post" enctype="multipart/form-data" class="space-y-6">
                         <div>
                             <label for="cover_object" class="block text-sm font-medium text-gray-700">Cover Object</label>
                             <select id="cover_object" onchange="handleCoverObjectChange(this)" name="cover_object" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-hf-blue focus:border-hf-blue sm:text-sm rounded-md">
@@ -70,8 +70,8 @@
                                     <h2 class="text-2xl font-semibold mb-4">Step 1: Upload Video</h2>
                                     <form id="uploadForm" enctype="multipart/form-data">
                                         <div class="mb-4">
-                                            <label for="video" class="block text-sm font-medium text-gray-700">Video File (MP4 or AVI)</label>
-                                            <input type="file" id="video" name="video" accept=".mp4,.avi" class="mt-1 block w-full" required>
+                                            <label for="cover_video" class="block text-sm font-medium text-gray-700">Video File (MP4 or AVI)</label>
+                                            <input type="file" id="cover_video" name="cover_video" accept=".mp4,.avi" class="mt-1 block w-full" required>
                                         </div>
                                         <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                             Upload and Process
@@ -116,7 +116,6 @@
             audio: "{{ url_for('audio') }}",
             video: "{{ url_for('video') }}"
         };
-
         const uploadForm = document.getElementById('uploadForm');
         const progressBar = document.getElementById('progressBar');
         const progress = document.getElementById('progress');
@@ -134,7 +133,7 @@
             progressBar.classList.remove('hidden');
             
             try {
-                const response = await axios.post('/upload_video', formData, {
+                const response = await axios.post("{{ url_for('upload_video') }}", formData, {
                     onUploadProgress: (progressEvent) => {
                         const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                         progress.style.width = percentCompleted + '%';

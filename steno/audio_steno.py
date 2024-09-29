@@ -91,7 +91,6 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
     return str(output_path)
 
 def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None) -> str:
-    print(audio_file)
     # Ensure bit_size is between 1 and 8
     if not (1 <= bit_size <= 8):
         raise ValueError("bit_size must be between 1 and 8")
