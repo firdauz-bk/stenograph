@@ -222,7 +222,8 @@ def decode_text_post():
             #### DETERMINE THE FILETYPE TO USE THEIR RESPECTIVE FUNCTION ####
                 file_extension = os.path.splitext(filename)[1].lower()
                 if file_extension in ['.png', '.gif', '.bmp', '.jpg']:
-                    decoded_message = decode_image(file_path, lsb_count=1)
+                    bit_size = int(request.form.get('bit_size', 1))
+                    decoded_message = decode_image(file_path, lsb_count=bit_size)
 
                 elif file_extension in ['.mp3', '.wav']:
                     bit_size = int(request.form.get('bit_size', 1))
