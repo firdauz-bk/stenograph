@@ -36,23 +36,6 @@
                         </a>
                     </div>
                     <h2 class="text-lg leading-6 font-medium text-gray-900 mb-4">Encode Steganographic Message in Video</h2>
-                    {% with messages = get_flashed_messages() %}
-                        {% if messages %}
-                            <div class="rounded-md bg-red-50 p-4 mb-4">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h3 class="text-sm font-medium text-red-800">{{ messages[0] }}</h3>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endif %}
-                    {% endwith %}
-
                     <form action="{{ url_for('upload_video') }}" method="post" enctype="multipart/form-data" class="space-y-6">
                         <div>
                             <label for="cover_object" class="block text-sm font-medium text-gray-700">Cover Object</label>
@@ -66,45 +49,88 @@
                             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                                 <h1 class="text-3xl font-bold mb-6">Video Steganography</h1>
                                 
-                                <div id="step1" class="mb-8">
-                                    <h2 class="text-2xl font-semibold mb-4">Step 1: Upload Video</h2>
-                                    <form id="uploadForm" enctype="multipart/form-data">
-                                        <div class="mb-4">
-                                            <label for="cover_video" class="block text-sm font-medium text-gray-700">Video File (MP4 or AVI)</label>
-                                            <input type="file" id="cover_video" name="cover_video" accept=".mp4,.avi" class="mt-1 block w-full" required>
-                                        </div>
-                                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                            Upload and Process
-                                        </button>
-                                    </form>
-                                    <div id="progressBar" class="hidden mt-4 w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                                        <div id="progress" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
-                                    </div>
+                        <!-- Step 1: Upload Video -->
+                        <div id="step1" class="mb-8">
+                            <h2 class="text-2xl font-semibold mb-4">Upload a Video File</h2>
+                            <form id="uploadForm" action="{{ url_for('upload_video') }}" method="post" enctype="multipart/form-data">
+                                <div class="mb-4">
+                                    <label for="cover_video" class="block text-sm font-medium text-gray-700">Video File (MP4 or AVI)</label>
+                                    <input type="file" id="cover_video" name="cover_video" accept=".mp4,.avi" class="mt-1 block w-full" required>
                                 </div>
-                                
-                                <div id="step2" class="hidden">
-                                    <h2 class="text-2xl font-semibold mb-4">Step 2: Encode Message</h2>
-                                    <form id="encodeForm" action="{{ url_for('encode_video_route') }}" method="post" enctype="multipart/form-data">
-                                        <div class="mb-4">
-                                            <label for="frame_number" class="block text-sm font-medium text-gray-700">Frame Number</label>
-                                            <input type="range" id="frame_number" name="frame_number" min="1" max="100" value="1" class="mt-1 block w-full">
-                                            <span id="frameDisplay"></span>
-                                        </div>
-                                        <div class="mb-4">
-                                            <label for="bit_size" class="block text-sm font-medium text-gray-700">Bit Size (1-8)</label>
-                                            <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="2" class="mt-1 block w-full">
-                                            <span id="bitSizeDisplay"></span>
-                                        </div>
-                                        <div class="mb-4">
-                                            <label for="payload" class="block text-sm font-medium text-gray-700">Payload (Text File)</label>
-                                            <input type="file" id="payload" name="payload" accept=".txt" class="mt-1 block w-full" required>
-                                        </div>
-                                        <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                                            Encode
-                                        </button>
-                                    </form>
-                                </div>
+                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                                    Upload and Process
+                                </button>
+                            </form>
+                            <div id="uploadStatus">
+                                <!-- Display flashed messages -->
+                                {% with messages = get_flashed_messages(with_categories=true) %}
+                                    {% if messages %}
+                                        {% for category, message in messages %}
+                                            <div class="mt-4 p-4 rounded bg-{{ 'green' if category == 'success' else 'red' }}-100 text-{{ 'green' if category == 'success' else 'red' }}-800">
+                                                {{ message }}
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
                             </div>
+                        </div>
+
+                                <!-- Step 2: Encode Message (Displayed After Video Upload) -->
+                                {% if session.get('video_path') %}
+                                    <div id="step2" class="mb-8">
+                                        <h2 class="text-2xl font-semibold mb-4">Encode Message</h2>
+                                            <form id="encodeForm" action="{{ url_for('encode_video_route') }}" method="post" enctype="multipart/form-data">
+                                                <!-- Frame Number Input -->
+                                                    <div class="mb-4">
+                                                        <label for="frame_number" class="block text-sm font-medium text-gray-700">
+                                                            Frame Number (0 to {{ session['total_frames'] - 1 }})
+                                                        </label>
+                                                        <input type="range" id="frame_number" name="frame_number" min="0" max="{{ session['total_frames'] - 1 }}" value="0" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
+                                                        <div>Selected Frame: <span id="frameNumberDisplay">0</span></div>
+                                                    </div>
+
+                                                <!-- Bit Size Input -->
+                                                <div class="mb-4">
+                                                    <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB Count (1-8)</label>
+                                                    <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="2" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
+                                                    <div>Selected Bit Size: <span id="bitSizeDisplay">2</span>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Payload File Input -->
+                                                <div class="mb-4">
+                                                    <label for="payload_video" class="block text-sm font-medium text-gray-700">Payload (Text File)</label>
+                                                    <input type="file" id="payload_video" name="payload_video" accept=".txt" class="mt-1 block w-full" required>
+                                                </div>
+
+                                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                                Encode
+                                            </button>
+                                            </form>
+</div>
+
+<!-- JavaScript to Update Displayed Values -->
+<script>
+    // Frame Number Display
+    const frameNumberInput = document.getElementById('frame_number');
+    const frameNumberDisplay = document.getElementById('frameNumberDisplay');
+    frameNumberDisplay.textContent = frameNumberInput.value;
+
+    frameNumberInput.addEventListener('input', function() {
+        frameNumberDisplay.textContent = frameNumberInput.value;
+    });
+
+    // Bit Size Display
+    const bitSizeInput = document.getElementById('bit_size');
+    const bitSizeDisplay = document.getElementById('bitSizeDisplay');
+    bitSizeDisplay.textContent = bitSizeInput.value;
+
+    bitSizeInput.addEventListener('input', function() {
+        bitSizeDisplay.textContent = bitSizeInput.value;
+    });
+</script>
+{% endif %}
+
                        
             </div>
         </div>
@@ -116,54 +142,16 @@
             audio: "{{ url_for('audio') }}",
             video: "{{ url_for('video') }}"
         };
-        const uploadForm = document.getElementById('uploadForm');
-        const progressBar = document.getElementById('progressBar');
-        const progress = document.getElementById('progress');
-        const step1 = document.getElementById('step1');
-        const step2 = document.getElementById('step2');
-        const frameNumber = document.getElementById('frame_number');
-        const frameDisplay = document.getElementById('frameDisplay');
-        const bitSize = document.getElementById('bit_size');
-        const bitSizeDisplay = document.getElementById('bitSizeDisplay');
-
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(uploadForm);
-            
-            progressBar.classList.remove('hidden');
-            
-            try {
-                const response = await axios.post("{{ url_for('upload_video') }}", formData, {
-                    onUploadProgress: (progressEvent) => {
-                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-                        progress.style.width = percentCompleted + '%';
-                    }
-                });
-                
-                if (response.data.success) {
-                    step1.classList.add('hidden');
-                    step2.classList.remove('hidden');
-                    frameNumber.max = response.data.frame_count;
-                    frameNumber.value = 1;
-                    updateFrameDisplay();
-                    updateBitSizeDisplay();
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred while uploading the video.');
+        console.log('Page loaded');
+        document.addEventListener('DOMContentLoaded', (event) => {
+            console.log('DOM fully loaded');
+            // This will help ensure that setupVideoEncoding is called
+            if (typeof setupVideoEncoding === 'function') {
+                setupVideoEncoding();
+            } else {
+                console.error('setupVideoEncoding function not found');
             }
         });
-
-        frameNumber.addEventListener('input', updateFrameDisplay);
-        bitSize.addEventListener('input', updateBitSizeDisplay);
-
-        function updateFrameDisplay() {
-            frameDisplay.textContent = `Selected frame: ${frameNumber.value}`;
-        }
-
-        function updateBitSizeDisplay() {
-            bitSizeDisplay.textContent = `Selected bit size: ${bitSize.value}`;
-        }
     </script>
     <!--<script src="{{ url_for('static', filename='js/script.js') }}"></script> -->
 </body>

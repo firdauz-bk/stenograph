@@ -5,7 +5,8 @@ from io import BytesIO
 import zipfile
 from steno.image_steno import encode_image, decode_image
 from steno.audio_steno import encode_audio, decode_audio, encode_image_in_audio, decode_image_in_audio
-from steno.video_steno import extract_frames, encode_video, decode_video
+from steno.video_steno import extract_frames, lsb_encode, create_video_with_audio, encode_video, clear_output_directory
+import cv2
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ILOVEINF2005!'  # Set a secret key for flashing messages
@@ -15,6 +16,11 @@ app.config['OUTPUT_FOLDER'] = 'encoded_files'
 # Ensure the upload and output folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+
+ALLOWED_EXTENSIONS = {'mp4', 'avi'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 #################### INDEX PAGE ########################
 @app.route('/')                                        
@@ -96,60 +102,105 @@ def video():
 @app.route('/upload_video', methods=['POST'])
 def upload_video():
     if 'cover_video' not in request.files:
-        return jsonify({'error': 'No video file uploaded'}), 400
+        flash('No video file uploaded', 'error')
+        return redirect(url_for('video'))
     
     video = request.files['cover_video']
     
     if video.filename == '':
-        return jsonify({'error': 'No video file selected'}), 400
+        flash('No video file selected', 'error')
+        return redirect(url_for('video'))
     
-    if video(video.filename, {'mp4', 'avi'}):
+    if video and allowed_file(video.filename):
         filename = secure_filename(video.filename)
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         video.save(video_path)
         
-        # Extract frames
-        temp_dir = os.path.join(app.config['OUTPUT_FOLDER'], 'temp_frames')
-        frame_count = extract_frames(video_path, temp_dir)
+        # Get total frames and frame rate
+        cap = cv2.VideoCapture(video_path)
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = cap.get(cv2.CAP_PROP_FPS)
+        cap.release()
         
         session['video_path'] = video_path
-        session['frame_count'] = frame_count
+        session['total_frames'] = total_frames
+        session['fps'] = fps
         
-        return jsonify({'success': True, 'frame_count': frame_count})
+        flash(f'Video uploaded successfully. {total_frames} frames detected.', 'success')
+        return redirect(url_for('video'))
     
-    return jsonify({'error': 'Invalid file type'}), 400
-
+    flash('Invalid file type. Please upload an MP4 or AVI file.', 'error')
+    return redirect(url_for('video'))
 
 @app.route('/encode_video', methods=['POST'])
 def encode_video_route():
-    if 'video_path' not in session or 'frame_count' not in session:
-        flash('Please upload a video first')
+    if 'video_path' not in session:
+        flash('Please upload a video first', 'error')
         return redirect(url_for('video'))
     
-    payload = request.files['payload']
-    frame_number = int(request.form.get('frame_number'))
-    lsb_bits = int(request.form.get('bit_size'))
+    if 'payload_video' not in request.files:
+        flash('No payload file uploaded', 'error')
+        return redirect(url_for('video'))
+    
+    payload = request.files['payload_video']
+    frame_number = int(request.form.get('frame_number', 0))
+    lsb_bits = int(request.form.get('bit_size', 1))
+    
+    total_frames = session.get('total_frames', 0)
+    if frame_number < 0 or frame_number >= total_frames:
+        flash('Invalid frame number', 'error')
+        return redirect(url_for('video'))
     
     if payload.filename == '':
-        flash('Payload file is required')
+        flash('No payload file selected', 'error')
         return redirect(url_for('video'))
     
-    if payload:
+    if payload and payload.filename.lower().endswith('.txt'):
         payload_filename = secure_filename(payload.filename)
         payload_path = os.path.join(app.config['UPLOAD_FOLDER'], payload_filename)
         payload.save(payload_path)
-
+    
         try:
-            output_path = encode_video(session['video_path'], payload_path, frame_number, lsb_bits, app.config['OUTPUT_FOLDER'])
-            flash('Encoding successful')
-            return send_file(output_path, as_attachment=True)
+            # Paths and parameters
+            video_path = session['video_path']
+            output_video_name = f"encoded_{os.path.basename(video_path)}"
+            output_video_path = os.path.join(app.config['OUTPUT_FOLDER'], output_video_name)
+            frames_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'frames')
+            fps = session['fps']
+            
+            # Ensure frames folder exists
+            os.makedirs(frames_folder, exist_ok=True)
+            
+            # Clear frames folder
+            clear_output_directory(frames_folder)
+            
+            # Extract frames
+            extract_frames(video_path, frames_folder)
+            
+            # Encode the payload into the specified frame
+            lsb_encode(frame_number, lsb_bits, payload_path, frames_folder)
+            
+            # Create the video with audio
+            create_video_with_audio(frames_folder, video_path, output_video_path, fps)
+            
+            # Clean up temporary files
+            clear_output_directory(frames_folder)
+            os.remove(payload_path)
+            os.remove(video_path)
+            
+            # Remove session data
+            session.pop('video_path', None)
+            session.pop('total_frames', None)
+            session.pop('fps', None)
+            
+            flash('Encoding successful!', 'success')
+            return send_file(output_video_path, as_attachment=True, download_name='encoded_video.mp4')
         except Exception as e:
-            flash(f'Encoding failed: {str(e)}')
+            flash(f'Encoding failed: {str(e)}', 'error')
             return redirect(url_for('video'))
-
-    flash('Invalid file')
+    
+    flash('Invalid file type for payload. Please upload a TXT file.', 'error')
     return redirect(url_for('video'))
-
 
 ################################# IMAGE ENCODING PAGE #####################################################################################
 @app.route('/image')

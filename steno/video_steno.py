@@ -1,19 +1,20 @@
+# video_steno.py
+
+import math
 import cv2
-import numpy as np
-from PIL import Image
 import os
+from PIL import Image
 from moviepy.editor import VideoFileClip, ImageSequenceClip
 
-eof_marker = "$$$###$$$"
+EOF_MARKER = "$$$###$$$"
 
 def extract_frames(video_path, output_folder):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     
     cap = cv2.VideoCapture(video_path)
-    
     if not cap.isOpened():
-        raise ValueError("Error: Could not open video.")
+        raise IOError("Error: Could not open video.")
     
     frame_count = 0
     while True:
@@ -24,96 +25,121 @@ def extract_frames(video_path, output_folder):
         frame_filename = os.path.join(output_folder, f"frame_{frame_count}.png")
         cv2.imwrite(frame_filename, frame)
         frame_count += 1
+        #print(f"Extracted frame {frame_count}")
     
     cap.release()
-    return frame_count
+    #print("Frame extraction complete!")
 
-def generateData(data):
-    with open(data, 'r', encoding='utf8') as file:
+def generate_data(data_file):
+    # Read the text from the file
+    with open(data_file, 'r', encoding='utf8') as file:
         text = file.read()
+
+    # Convert each character in the text to its binary representation
     binary_string = ''.join(format(ord(char), '08b') for char in text)
-    binary_eof_marker = ''.join(format(ord(char), '08b') for char in eof_marker)
+
+    # Convert the EOF marker to its binary representation
+    binary_eof_marker = ''.join(format(ord(char), '08b') for char in EOF_MARKER)
+
+    # Append the EOF marker binary representation to the main binary string
     return binary_string + binary_eof_marker
 
-def lsb_encode(image_path, binary_message, lsb_bits):
-    image = Image.open(image_path)
+def lsb_encode(frame_number, lsb_bits, data_file, frames_folder):
+    # Open the specific frame
+    frame_path = os.path.join(frames_folder, f'frame_{frame_number}.png')
+    if not os.path.exists(frame_path):
+        raise FileNotFoundError(f"Frame {frame_path} not found.")
+    
+    image = Image.open(frame_path)
     pixels = image.load()
+    
+    # Convert the message and EOF marker to binary
+    binary_message = generate_data(data_file)
     
     data_index = 0
     total_bits = len(binary_message)
 
-    for i in range(image.size[0]):
-        for j in range(image.size[1]):
+    width, height = image.size
+
+    # Iterate through pixels to encode the message
+    for y in range(height):
+        for x in range(width):
             if data_index < total_bits:
-                r, g, b = pixels[i, j]
+                r, g, b = pixels[x, y]
+                
+                # Convert to binary
                 r_bin = format(r, '08b')
-                r_bin = r_bin[:-lsb_bits] + binary_message[data_index:data_index + lsb_bits]
-                pixels[i, j] = (int(r_bin, 2), g, b)
+                
+                # Modify the LSB bits
+                bits_to_embed = binary_message[data_index:data_index + lsb_bits]
+                bits_to_embed = bits_to_embed.ljust(lsb_bits, '0')
+                r_bin = r_bin[:-lsb_bits] + bits_to_embed
+
+                # Update pixel
+                pixels[x, y] = (int(r_bin, 2), g, b)
+                
                 data_index += lsb_bits
-            
-            if data_index >= total_bits:
+            else:
                 break
+        if data_index >= total_bits:
+            break
     
-    image.save(image_path)
+    # Save the modified frame
+    image.save(frame_path)
 
-def lsb_decode(image_path, lsb_bits):
-    image = Image.open(image_path)
-    pixels = image.load()
+def create_video_with_audio(frames_folder, audio_path, output_video, fps):
+    # Get list of frame files
+    frame_files = sorted(
+        [f for f in os.listdir(frames_folder) if f.startswith('frame_')],
+        key=lambda x: int(x.split('_')[1].split('.')[0])
+    )
+    frame_paths = [os.path.join(frames_folder, f) for f in frame_files]
     
-    binary_message = ''
+    # Create video clip from frames
+    clip = ImageSequenceClip(frame_paths, fps=fps)
     
-    for i in range(image.size[0]):
-        for j in range(image.size[1]):
-            r, g, b = pixels[i, j]
-            r_bin = format(r, '08b')
-            binary_message += r_bin[-lsb_bits:]
+    # Load audio from original video
+    video = VideoFileClip(audio_path)
     
-    decoded_message = ''
-    for i in range(0, len(binary_message), 8):
-        char_bin = binary_message[i:i+8]
-        if len(char_bin) < 8:
-            continue
-        decoded_char = chr(int(char_bin, 2))
-        decoded_message += decoded_char
-        
-        if decoded_message.endswith(eof_marker):
-            return decoded_message[:-len(eof_marker)]
+    # Combine video and audio
+    final_video = clip.set_audio(video.audio)
     
-    return decoded_message
+    # Write the output video file
+    final_video.write_videofile(output_video, codec='libx264', audio_codec='aac')
+    
+    final_video.close()
+    clip.close()
+    video.close()
+    del final_video
+    del clip
+    del video
 
-def encode_video(video_path, payload_path, frame_number, lsb_bits, output_dir):
-    temp_dir = os.path.join(output_dir, 'temp_frames')
-    extract_frames(video_path, temp_dir)
-    
-    binary_message = generateData(payload_path)
-    
-    frame_path = os.path.join(temp_dir, f"frame_{frame_number}.png")
-    lsb_encode(frame_path, binary_message, lsb_bits)
-    
-    # Recombine frames into video
-    frame_files = [os.path.join(temp_dir, f) for f in sorted(os.listdir(temp_dir), key=lambda x: int(x.split('_')[1].split('.')[0]))]
-    
-    clip = ImageSequenceClip(frame_files, fps=VideoFileClip(video_path).fps)
-    output_path = os.path.join(output_dir, 'encoded_video.mp4')
-    clip.write_videofile(output_path, codec='libx264')
-    
-    # Clean up temporary files
-    for file in frame_files:
-        os.remove(file)
-    os.rmdir(temp_dir)
-    
-    return output_path
+def clear_output_directory(output_folder):
+    if os.path.exists(output_folder):
+        for filename in os.listdir(output_folder):
+            file_path = os.path.join(output_folder, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+    else:
+        os.makedirs(output_folder)
 
-def decode_video(video_path, frame_number, lsb_bits, output_dir):
-    temp_dir = os.path.join(output_dir, 'temp_frames')
-    extract_frames(video_path, temp_dir)
+def encode_video(video_file, data_file, frame_number, lsb_bits, output_video):
+    output_dir = 'frames'
+    clear_output_directory(output_dir)
     
-    frame_path = os.path.join(temp_dir, f"frame_{frame_number}.png")
-    decoded_message = lsb_decode(frame_path, lsb_bits)
+    # Extract frames from video
+    extract_frames(video_file, output_dir)
     
-    # Clean up temporary files
-    for file in os.listdir(temp_dir):
-        os.remove(os.path.join(temp_dir, file))
-    os.rmdir(temp_dir)
+    # Get the frame rate of the original video
+    cap = cv2.VideoCapture(video_file)
+    fps = cap.get(cv2.CAP_PROP_FPS)
+    cap.release()
     
-    return decoded_message
+    # Encode the message into the specified frame
+    lsb_encode(frame_number, lsb_bits, data_file, output_dir)
+    
+    # Recreate the video with audio
+    create_video_with_audio(output_dir, video_file, output_video, fps)
+    
+    # Optionally clear the frames directory after encoding
+    clear_output_directory(output_dir)

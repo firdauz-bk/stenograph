@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', (event) => {
     // File upload preview and drag & drop for payload
     setupFileUpload('payload_audio', 'Upload a text or image file', ['.txt', '.png']);
-    setupFileUpload('payload_video', 'Upload a text or image file', ['.txt']);
-    setupFileUpload('payload_image', 'Upload a text or image file', ['.txt', '.wav']);
+    setupFileUpload('payload_video', 'Upload a text', ['.txt']);
+    setupFileUpload('payload_image', 'Upload a text or audio file', ['.txt', '.wav']);
     
     // File upload preview and drag & drop for cover object
     setupFileUpload('cover_audio', 'Upload an audio file', ['.mp3', '.wav']);
@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     setupFileUpload('decode_payload_image', 'Upload an audio file', ['.mp3', '.wav']);
     setupFileUpload('decode_payload_audio', 'Upload an image file', ['.png', '.bmp']);
 
+    setupVideoEncoding();
+
     // Initialize slider value
     const slider = document.getElementById('bit_size');
     if (slider) {
@@ -21,6 +23,46 @@ document.addEventListener('DOMContentLoaded', (event) => {
         slider.addEventListener('input', (e) => updateSliderValue(e.target.value));
     }
 });
+
+function setupVideoEncoding() {
+    const uploadForm = document.getElementById('uploadForm');
+    const encodeForm = document.getElementById('encodeForm');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const step2 = document.getElementById('step2');
+    const frameNumber = document.getElementById('frameNumber');
+    const bitSize = document.getElementById('bit_size');
+    const sliderValue = document.getElementById('slider_value');
+    const frameDisplay = document.getElementById('frameDisplay');
+
+    if (uploadForm) {
+        uploadForm.addEventListener('submit', (e) => {
+            // Let the form submit normally, no need to prevent default
+            // The server will handle the upload and use flash messages
+        });
+    }
+
+    if (encodeForm) {
+        encodeForm.addEventListener('submit', (e) => {
+            // Let the form submit normally for encoding as well
+        });
+    }
+
+    if (bitSize && sliderValue) {
+        bitSize.addEventListener('input', (e) => {
+            sliderValue.textContent = e.target.value;
+        });
+    }
+
+    // Show/hide step2 based on session data
+    if (step2) {
+        const frameCount = parseInt(frameNumber.getAttribute('max')) + 1;
+        if (frameCount > 0) {
+            step2.style.display = 'block';
+        } else {
+            step2.style.display = 'none';
+        }
+    }
+}
 
 function setupFileUpload(inputId, defaultText, allowedExtensions) {
     const fileInput = document.getElementById(inputId);
@@ -30,6 +72,19 @@ function setupFileUpload(inputId, defaultText, allowedExtensions) {
     const dropZone = fileInput.closest('.border-dashed');
 
     if (!dropZone) return;
+
+    if (inputId === 'cover_video') {
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);
+            if (fileInput.files.length > 0) {
+                document.getElementById('uploadForm').submit();
+            }
+        });
+    } else {
+        fileInput.addEventListener('change', (e) => {
+            handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);
+        });
+    }
 
     fileInput.addEventListener('change', (e) => {
         handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);
