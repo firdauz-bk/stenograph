@@ -4,7 +4,7 @@ from PIL import Image
 import os
 
 # Configuration Variables
-lsb_bits = 2
+lsb_bits = 1
 frame_location = "frames"
 eof_marker = "$$$###$$$"
 video = 'output.avi'
@@ -65,7 +65,7 @@ def lsb_decode(frame, lsb_bits):
     return decoded_message
 
 # Main Execution
-frame_number = 10  # Specify the frame you want to decode
+frame_number = 1  # Specify the frame you want to decode
 extract_frames(video, frame_location)
 decoded_data = lsb_decode(frame_number, lsb_bits)
 

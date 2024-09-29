@@ -5,7 +5,7 @@ from io import BytesIO
 import zipfile
 from steno.image_steno import encode_image, decode_image
 from steno.audio_steno import encode_audio, decode_audio, encode_image_in_audio, decode_image_in_audio
-from steno.video_steno import extract_frames, lsb_encode, create_video_with_audio, encode_video, clear_output_directory
+from steno.video_steno import encode_video, decode_video, FRAMES_DIR
 import cv2
 
 app = Flask(__name__)
@@ -17,10 +17,10 @@ app.config['OUTPUT_FOLDER'] = 'encoded_files'
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 
-ALLOWED_EXTENSIONS = {'mp4', 'avi'}
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+# Allowed file extensions
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 #################### INDEX PAGE ########################
 @app.route('/')                                        
@@ -111,7 +111,7 @@ def upload_video():
         flash('No video file selected', 'error')
         return redirect(url_for('video'))
     
-    if video and allowed_file(video.filename):
+    if video and allowed_file(video.filename, {'mp4', 'avi'}):
         filename = secure_filename(video.filename)
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         video.save(video_path)
@@ -125,7 +125,6 @@ def upload_video():
         session['video_path'] = video_path
         session['total_frames'] = total_frames
         session['fps'] = fps
-        session['video_uploaded'] = True
 
         flash(f'Video uploaded successfully. {total_frames} frames detected.', 'success')
         return redirect(url_for('video'))
@@ -144,7 +143,7 @@ def encode_video_route():
         return redirect(url_for('video'))
     
     payload = request.files['payload_video']
-    frame_number = int(request.form.get('frame_number', 0))
+    frame_number = int(request.form.get('frame_number', 1))
     lsb_bits = int(request.form.get('bit_size', 1))
     
     total_frames = session.get('total_frames', 0)
@@ -164,46 +163,37 @@ def encode_video_route():
         try:
             # Paths and parameters
             video_path = session['video_path']
-            output_video_name = f"encoded_{os.path.basename(video_path)}"
+            output_video_name = f"encoded_{os.path.splitext(os.path.basename(video_path))[0]}.avi"
             output_video_path = os.path.join(app.config['OUTPUT_FOLDER'], output_video_name)
-            frames_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'frames')
-            fps = session['fps']
-
             
-            # Ensure frames folder exists
-            os.makedirs(frames_folder, exist_ok=True)
-            
-            # Clear frames folder
-            clear_output_directory(frames_folder)
-            
-            # Extract frames
-            extract_frames(video_path, frames_folder)
-            
-            # Encode the payload into the specified frame
-            lsb_encode(frame_number, lsb_bits, payload_path, frames_folder)
-            
-            # Create the video with audio
-            create_video_with_audio(frames_folder, video_path, output_video_path, fps)
-            
-            # Clean up temporary files
-            clear_output_directory(frames_folder)
-            os.remove(payload_path)
-            os.remove(video_path)
-            
-            # Remove session data
-            session.pop('video_uploaded', None)
-            session.pop('video_path', None)
-            session.pop('total_frames', None)
-            session.pop('fps', None)
+            # Call the encode_video function
+            encode_video(
+                video_file=video_path,
+                data_file=payload_path,
+                frame_number=1,
+                lsb_bits=lsb_bits,
+                output_video=output_video_path,
+                frames_folder=FRAMES_DIR
+            )
             
             flash('Encoding successful!', 'success')
-            return send_file(output_video_path, as_attachment=True, download_name='encoded_video.mp4')
+            # Send the output video file to the user
+            return send_file(output_video_path, as_attachment=True, download_name=output_video_name)
+        
         except Exception as e:
             flash(f'Encoding failed: {str(e)}', 'error')
             return redirect(url_for('video'))
-    
-    flash('Invalid file type for payload. Please upload a TXT file.', 'error')
-    return redirect(url_for('video'))
+        
+        finally:
+            # Clean up temporary files
+            os.remove(payload_path)
+            os.remove(video_path)
+            session.pop('video_path', None)
+            session.pop('total_frames', None)
+            session.pop('fps', None)
+    else:
+        flash('Invalid payload file type. Please upload a .txt file.', 'error')
+        return redirect(url_for('video'))
 
 ################################# IMAGE ENCODING PAGE #####################################################################################
 @app.route('/image')
@@ -258,13 +248,15 @@ def decode_text_page():
 def decode_text_post():
     if request.method == 'POST':
         if 'decode_payload_text' not in request.files:
-            flash('No file part')
+            flash('No file part', 'error')
             return redirect(request.url)
         
         stego_file = request.files['decode_payload_text']
         
+
+
         if stego_file.filename == '':
-            flash('No selected file')
+            flash('No selected file', 'error')
             return redirect(request.url)
         
         if stego_file:
@@ -284,15 +276,27 @@ def decode_text_post():
                     decoded_message = decode_audio(file_path, bit_size=bit_size)
 
                 elif file_extension in ['.mp4', '.avi']:
-                    # decoded_message = decode_video(file_path)
-                    decoded_message = "insert video decoding function later here"
+                    bit_size = int(request.form.get('bit_size', 1))
+                    frame_number = 1
+
+                    decoded_message = decode_video(
+                        video_file=file_path,
+                        frame_number=frame_number,
+                        lsb_bits=bit_size,
+                        frames_folder=FRAMES_DIR
+                    )
                 else:
                     raise ValueError("Unsupported file type")
+                
+                # Remove the uploaded file after processing
+                os.remove(file_path)
                 
                 return render_template('decode_text.html', decoded_message=decoded_message)
             except Exception as e:
                 flash(f'Error decoding file: {str(e)}')
                 return redirect(request.url)
+        else:
+            return render_template('decode_text.html')
 
 @app.route('/decode_image')
 def decode_image_page():
