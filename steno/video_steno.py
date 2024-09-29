@@ -6,7 +6,6 @@ from moviepy.editor import VideoFileClip, ImageSequenceClip
 
 EOF_MARKER = "$$$###$$$"
 
-# Set FRAME_LOCATION to an absolute path to ensure correct directory usage
 # Get the directory of the current file (video_steno.py)
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -101,14 +100,14 @@ def clear_output_directory(output_folder=FRAMES_DIR):
         os.makedirs(output_folder)
 
 def encode_video(video_file, data_file, frame_number, lsb_bits, output_video, frames_folder=FRAMES_DIR):
-    output_dir = 'frames'
     clear_output_directory(frames_folder)
     extract_frames(video_file, frames_folder)
     cap = cv2.VideoCapture(video_file)
     fps = cap.get(cv2.CAP_PROP_FPS)
     cap.release()
     lsb_encode(frame_number, lsb_bits, data_file, frames_folder)
-    create_video_with_audio(frames_folder, video_file, output_video, fps)
+    # Corrected the order of arguments in the function call below
+    create_video_with_audio(video_file, output_video, fps, frames_folder)
     clear_output_directory(frames_folder)
 
 ################################### DECODE SECTION #######################################
@@ -123,49 +122,12 @@ def lsb_decode(frame_number, lsb_bits, frames_folder=FRAMES_DIR):
     pixels = image.load()
     
     binary_message = ''
-    
-    for i in range(image.size[0]):
-        for j in range(image.size[1]):
-            r, g, b = pixels[i, j]
-            
-            # Extract LSBs from red channel
-            r_bin = format(r, '08b')
-            binary_message += r_bin[-lsb_bits:]
-    
-    # Split into 8-bit chunks and convert to characters
-    decoded_message = ''
-    for i in range(0, len(binary_message), 8):
-        char_bin = binary_message[i:i+8]
-        if len(char_bin) < 8:
-            continue  # Skip incomplete byte
-        decoded_char = chr(int(char_bin, 2))
-        decoded_message += decoded_char
-        
-        # Stop decoding if we hit the EOF marker
-        if decoded_message.endswith(EOF_MARKER):  # Use the actual EOF marker
-            decoded_message = decoded_message[:-len(EOF_MARKER)]
-            break
-    
-    return decoded_message
-
-def lsb_decode(frame_number, lsb_bits, frames_folder=FRAMES_DIR):
-    # Open the image
-    img_path = os.path.join(frames_folder, f'frame_{frame_number}.png')
-    if not os.path.exists(img_path):
-        raise FileNotFoundError(f"Frame image not found: {img_path}")
-
-    spec_frame = os.path.join(frames_folder, f'frame_{frame_number}.png')
-    if not os.path.exists(spec_frame):
-        raise FileNotFoundError(f"Frame {spec_frame} not found.")
-    
-    image = Image.open(spec_frame)
-    pixels = image.load()
-    binary_message = ''
     width, height = image.size
-    
+
     for i in range(width):
         for j in range(height):
             r, g, b = pixels[i, j]
+            # Extract LSBs from red channel
             r_bin = format(r, '08b')
             binary_message += r_bin[-lsb_bits:]
     
