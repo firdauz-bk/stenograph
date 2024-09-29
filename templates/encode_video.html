@@ -83,9 +83,11 @@
                                                 <!-- Frame Number Input -->
                                                     <div class="mb-4">
                                                         <label for="frame_number" class="block text-sm font-medium text-gray-700">
-                                                            Frame Number (0 to {{ session['total_frames'] - 1 }})
+                                                            Total Frames : {{ session['total_frames']}}
+                                                            <br>
+                                                            Choose Available Frame (0 to {{ session['total_frames'] - 8 }})
                                                         </label>
-                                                        <input type="range" id="frame_number" name="frame_number" min="0" max="{{ session['total_frames'] - 1 }}" value="0" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
+                                                        <input type="range" id="frame_number" name="frame_number" min="0" max="{{ session['total_frames'] - 8 }}" value="0" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
                                                         <div>Selected Frame: <span id="frameNumberDisplay">0</span></div>
                                                     </div>
 
@@ -107,35 +109,19 @@
                                                 Encode
                                             </button>
                                             </form>
-</div>
-
-<!-- JavaScript to Update Displayed Values -->
-<script>
-    // Frame Number Display
-    const frameNumberInput = document.getElementById('frame_number');
-    const frameNumberDisplay = document.getElementById('frameNumberDisplay');
-    frameNumberDisplay.textContent = frameNumberInput.value;
-
-    frameNumberInput.addEventListener('input', function() {
-        frameNumberDisplay.textContent = frameNumberInput.value;
-    });
-
-    // Bit Size Display
-    const bitSizeInput = document.getElementById('bit_size');
-    const bitSizeDisplay = document.getElementById('bitSizeDisplay');
-    bitSizeDisplay.textContent = bitSizeInput.value;
-
-    bitSizeInput.addEventListener('input', function() {
-        bitSizeDisplay.textContent = bitSizeInput.value;
-    });
-</script>
-{% endif %}
-
-                       
+                                    </div>
+                                {% endif %}
+                                </div>
+                            </div>        
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <script>        
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>        
+    <!-- JavaScript to Update Displayed Values -->
+    <script>
         var urls = 
         {
             image: "{{ url_for('image') }}",
@@ -145,14 +131,30 @@
         console.log('Page loaded');
         document.addEventListener('DOMContentLoaded', (event) => {
             console.log('DOM fully loaded');
-            // This will help ensure that setupVideoEncoding is called
+                // This will help ensure that setupVideoEncoding is called
             if (typeof setupVideoEncoding === 'function') {
-                setupVideoEncoding();
-            } else {
-                console.error('setupVideoEncoding function not found');
-            }
+                    setupVideoEncoding();
+                } else {
+                    console.error('setupVideoEncoding function not found');
+                }
+            });
+        // Frame Number Display
+        const frameNumberInput = document.getElementById('frame_number');
+        const frameNumberDisplay = document.getElementById('frameNumberDisplay');
+        frameNumberDisplay.textContent = frameNumberInput.value;
+
+        frameNumberInput.addEventListener('input', function() {
+            frameNumberDisplay.textContent = frameNumberInput.value;
+        });
+
+        // Bit Size Display
+        const bitSizeInput = document.getElementById('bit_size');
+        const bitSizeDisplay = document.getElementById('bitSizeDisplay');
+        bitSizeDisplay.textContent = bitSizeInput.value;
+
+        bitSizeInput.addEventListener('input', function() {
+            bitSizeDisplay.textContent = bitSizeInput.value;
         });
     </script>
-    <!--<script src="{{ url_for('static', filename='js/script.js') }}"></script> -->
 </body>
 </html>
