@@ -76,10 +76,11 @@
                         </div>
 
                                 <!-- Step 2: Encode Message (Displayed After Video Upload) -->
-                                {% if session.get('video_path') %}
+                                {% if session.get('video_uploaded') %}
                                     <div id="step2" class="mb-8">
                                         <h2 class="text-2xl font-semibold mb-4">Encode Message</h2>
                                             <form id="encodeForm" action="{{ url_for('encode_video_route') }}" method="post" enctype="multipart/form-data">
+                                                
                                                 <!-- Frame Number Input -->
                                                     <div class="mb-4">
                                                         <label for="frame_number" class="block text-sm font-medium text-gray-700">

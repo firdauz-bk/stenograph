@@ -69,22 +69,20 @@ function setupFileUpload(inputId, defaultText, allowedExtensions) {
     if (!fileInput) return;
 
     const fileLabel = document.querySelector(`label[for="${inputId}"]`);
-    const dropZone = fileInput.closest('.border-dashed');
+    const dropZone = fileInput.closest('.border-dashed') || fileInput.parentElement;
 
     if (!dropZone) return;
 
-    if (inputId === 'cover_video') {
-        fileInput.addEventListener('change', (e) => {
-            handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);
-            if (fileInput.files.length > 0) {
-                document.getElementById('uploadForm').submit();
-            }
-        });
-    } else {
-        fileInput.addEventListener('change', (e) => {
-            handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);
-        });
-    }
+    fileInput.addEventListener('change', (e) => {
+        handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);
+        if (inputId === 'cover_video' && fileInput.files.length > 0) {
+            document.getElementById('uploadForm').submit();
+        }
+    });
+
+    dropZone.addEventListener('click', () => {
+        fileInput.click();
+    });
 
     fileInput.addEventListener('change', (e) => {
         handleFileSelection(fileInput, fileLabel, defaultText, allowedExtensions, dropZone);

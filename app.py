@@ -125,7 +125,8 @@ def upload_video():
         session['video_path'] = video_path
         session['total_frames'] = total_frames
         session['fps'] = fps
-        
+        session['video_uploaded'] = True
+
         flash(f'Video uploaded successfully. {total_frames} frames detected.', 'success')
         return redirect(url_for('video'))
     
@@ -167,6 +168,7 @@ def encode_video_route():
             output_video_path = os.path.join(app.config['OUTPUT_FOLDER'], output_video_name)
             frames_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'frames')
             fps = session['fps']
+
             
             # Ensure frames folder exists
             os.makedirs(frames_folder, exist_ok=True)
@@ -189,6 +191,7 @@ def encode_video_route():
             os.remove(video_path)
             
             # Remove session data
+            session.pop('video_uploaded', None)
             session.pop('video_path', None)
             session.pop('total_frames', None)
             session.pop('fps', None)
