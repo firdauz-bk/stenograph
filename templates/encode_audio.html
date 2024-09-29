@@ -59,7 +59,7 @@
                             <select id="cover_object" onchange="handleCoverObjectChange(this)" name="cover_object" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-hf-blue focus:border-hf-blue sm:text-sm rounded-md">
                                 <option value="audio">Audio (MP3, WAV)</option>
                                 <option value="image">Image (PNG, GIF, BMP)</option>
-                                <option value="video">Video (MP4)</option>
+                                <option value="video">Video (MP4, AVI)</option>
                             </select>
                         </div>
 
@@ -101,10 +101,12 @@
                         </div>
                         <br>
                         <div>
-                            <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB count (1-8)</label>
-                            <div class="flex items-center space-x-4">
-                                <input type="range" name="bit_size" id="bit_size" min="1" max="8" value="1" class="slider" oninput="updateSliderValue(this.value)">
-                                <span id="slider_value" class="text-sm font-medium text-gray-700">4</span>
+                            <!-- Bit Size Input -->
+                            <div class="mb-4">
+                                <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB Count (1-8)</label>
+                                    <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="1" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
+                                    <div>Selected Bit Size: <span id="bitSizeDisplay">1</span>
+                                </div>
                             </div>
                         </div>
                         <br>
@@ -126,6 +128,15 @@
             audio: "{{ url_for('audio') }}",
             video: "{{ url_for('video') }}"
         };
+
+        // Bit Size Display
+        const bitSizeInput = document.getElementById('bit_size');
+        const bitSizeDisplay = document.getElementById('bitSizeDisplay');
+        bitSizeDisplay.textContent = bitSizeInput.value;
+
+        bitSizeInput.addEventListener('input', function() {
+            bitSizeDisplay.textContent = bitSizeInput.value;
+        });
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

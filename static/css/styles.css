@@ -70,3 +70,9 @@
     cursor: pointer;
 }
 
+#drop-area {
+    transition: background-color 0.2s ease;
+}
+#drop-area.dragover {
+    background-color: #f0f0f0;
+}

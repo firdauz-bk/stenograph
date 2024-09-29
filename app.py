@@ -96,6 +96,7 @@ def encode_audio_route():
 ################################# VIDEO ENCODING PAGE #####################################################################################
 @app.route('/video')
 def video():
+    
     return render_template('encode_video.html')
 
 
@@ -125,6 +126,7 @@ def upload_video():
         session['video_path'] = video_path
         session['total_frames'] = total_frames
         session['fps'] = fps
+        session['video_uploaded'] = True
 
         flash(f'Video uploaded successfully. {total_frames} frames detected.', 'success')
         return redirect(url_for('video'))
@@ -191,6 +193,7 @@ def encode_video_route():
             session.pop('video_path', None)
             session.pop('total_frames', None)
             session.pop('fps', None)
+            session.pop('video_uploaded', None)
     else:
         flash('Invalid payload file type. Please upload a .txt file.', 'error')
         return redirect(url_for('video'))

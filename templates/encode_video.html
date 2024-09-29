@@ -40,7 +40,7 @@
                         <div>
                             <label for="cover_object" class="block text-sm font-medium text-gray-700">Cover Object</label>
                             <select id="cover_object" onchange="handleCoverObjectChange(this)" name="cover_object" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-hf-blue focus:border-hf-blue sm:text-sm rounded-md">
-                                <option value="video">Video (MP4)</option>
+                                <option value="video">Video (MP4, AVI)</option>
                                 <option value="audio">Audio (MP3, WAV)</option>
                                 <option value="image">Image (PNG, GIF, BMP)</option>
                             </select>
@@ -76,7 +76,7 @@
                         </div>
 
                                 <!-- Step 2: Encode Message (Displayed After Video Upload) -->
-                                {% if session.get('video_path') %}
+                                {% if session.get('video_uploaded') %}
                                     <div id="step2" class="mb-8">
                                         <h2 class="text-2xl font-semibold mb-4">Encode Message</h2>
                                             <form id="encodeForm" action="{{ url_for('encode_video_route') }}" method="post" enctype="multipart/form-data">
@@ -84,19 +84,19 @@
                                                 <!-- Frame Number Input -->
                                                     <div class="mb-4">
                                                         <label for="frame_number" class="block text-sm font-medium text-gray-700">
-                                                            Total Frames : {{ session['total_frames']}}
+                                                            Total Frames : {{ session['total_frames']}} | EoF character : 9
                                                             <br>
-                                                            Choose Available Frame (0 to {{ session['total_frames'] - 8 }})
+                                                            Choose Available Frame (1 to {{ session['total_frames'] - 8 }})
                                                         </label>
-                                                        <input type="range" id="frame_number" name="frame_number" min="0" max="{{ session['total_frames'] - 8 }}" value="0" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
-                                                        <div>Selected Frame: <span id="frameNumberDisplay">0</span></div>
+                                                        <input type="range" id="frame_number" name="frame_number" min="1" max="{{ session['total_frames'] - 8 }}" value="1" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
+                                                        <div>Selected Frame: <span id="frameNumberDisplay">1</span></div>
                                                     </div>
 
                                                 <!-- Bit Size Input -->
                                                 <div class="mb-4">
                                                     <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB Count (1-8)</label>
-                                                    <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="2" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
-                                                    <div>Selected Bit Size: <span id="bitSizeDisplay">2</span>
+                                                    <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="1" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
+                                                    <div>Selected Bit Size: <span id="bitSizeDisplay">1</span>
                                                     </div>
                                                 </div>
 
