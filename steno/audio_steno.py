@@ -118,29 +118,48 @@ def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None
 
     return decoded_audio
 
-import json
+
 #Function to encode an image into an audio file
 def encode_image_in_audio(png_file: str, audio_file: str, bit_size: int = 1, output_dir: str = "encoded"):
     if not (1 <= bit_size <= 8):
         raise ValueError("bit_size must be between 1 and 8")
-
+    
     # Read the binary content of the image file
-    with open(png_file, 'rb') as file:
-        img_data = file.read()
-
+    try:
+        with open(png_file, 'rb') as file:
+            img_data = file.read()
+    except Exception as e:
+        raise ValueError(f"Failed to read image file: {str(e)}")
+    
     payload_size = len(img_data)  # Get the size of the image file in bytes
 
+    # Convert payload_size to 32-bit binary string
+    size_bits = format(payload_size, '032b')
+
     # Open the audio file
-    audio = wave.open(audio_file, mode="rb")
+    try:
+        audio = wave.open(audio_file, mode="rb")
+    except Exception as e:
+        raise ValueError(f"Failed to open audio file: {str(e)}")
+    
     frame_bytes = bytearray(list(audio.readframes(audio.getnframes())))
+    audio.close()
 
     # Ensure the audio file can hold the image payload
-    if payload_size * 8 > len(frame_bytes) * bit_size:
+    total_bits_needed = len(size_bits) + len(img_data) * 8  # Size bits + image data bits
+    available_bits = len(frame_bytes) * bit_size
+
+    if total_bits_needed > available_bits:
         raise ValueError("The audio file is too small to hold the PNG payload.")
 
     # Convert image data to bit representation
-    bits = ''.join([bin(byte)[2:].rjust(8, '0') for byte in img_data])
-    bit_chunks = [bits[i:i + bit_size] for i in range(0, len(bits), bit_size)]
+    bits = ''.join([format(byte, '08b') for byte in img_data])
+
+    # Combine size_bits and bits
+    total_bits = size_bits + bits
+
+    # Create bit chunks according to bit_size
+    bit_chunks = [total_bits[i:i + bit_size] for i in range(0, len(total_bits), bit_size)]
 
     # Replace LSBs of each byte of the audio file with the bits of the image
     for i, bit_chunk in enumerate(bit_chunks):
@@ -152,33 +171,28 @@ def encode_image_in_audio(png_file: str, audio_file: str, bit_size: int = 1, out
     frame_modified = bytes(frame_bytes)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / f"encoded_image_{os.path.basename(audio_file)}"
-    new_audio = wave.open(str(output_path), 'wb')
-    new_audio.setparams(audio.getparams())
-    new_audio.writeframes(frame_modified)
-    new_audio.close()
-    audio.close()
+    output_path = output_dir / f"{payload_size}_encoded_image_{os.path.basename(audio_file)}"
+    try:
+        new_audio = wave.open(str(output_path), 'wb')
+        new_audio.setparams((audio.getnchannels(), audio.getsampwidth(), audio.getframerate(), 0, 'NONE', 'not compressed'))
+        new_audio.writeframes(frame_modified)
+        new_audio.close()
+    except Exception as e:
+        raise ValueError(f"Failed to write encoded audio file: {str(e)}")
 
-    # Save the payload size to a JSON file
-    json_path = output_dir / "payload_size.json"
-    with open(json_path, 'w') as json_file:
-        json.dump({"payload_size": payload_size}, json_file)
+    return str(output_path), payload_size
 
-    return str(output_path), str(json_path)
-
-
-def decode_image_in_audio(audio_file: str, bit_size: int = 1, output_image_file: str = "decoded_image.png", json_file: str = None):
+def decode_image_in_audio(audio_file: str, bit_size: int = 1, payload_size: int = None):
     if not (1 <= bit_size <= 8):
         raise ValueError("bit_size must be between 1 and 8")
 
-    # Read the payload_size from the JSON file
-    with open(json_file, 'r') as file:
-        payload_info = json.load(file)
-        payload_size = payload_info['payload_size']
+    if payload_size is None:
+        raise ValueError("Payload size is required for decoding.")
 
     # Open the encoded audio file
     audio = wave.open(audio_file, mode='rb')
     frame_bytes = bytearray(list(audio.readframes(audio.getnframes())))
+    audio.close()
 
     # Extract the specified bits from each byte
     extracted_bits = ''.join([bin(byte & (2 ** bit_size - 1)).lstrip('0b').rjust(bit_size, '0') for byte in frame_bytes])
@@ -194,9 +208,14 @@ def decode_image_in_audio(audio_file: str, bit_size: int = 1, output_image_file:
     byte_array = byte_array[:payload_size]
 
     # Write the extracted bytes to an image file
-    with open(output_image_file, 'wb') as output:
-        output.write(byte_array)
+    audio_basename = os.path.basename(audio_file)
+    audio_name, _ = os.path.splitext(audio_basename)
+    output_image_path = f"decoded_image_{audio_name}.png"
 
-    audio.close()
+    try:
+        with open(output_image_path, 'wb') as img_file:
+            img_file.write(byte_array)
+    except Exception as e:
+        raise ValueError(f"Failed to write image file: {str(e)}")
 
-    return output_image_file
+    return output_image_path

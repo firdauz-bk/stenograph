@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, send_file, flash, jsonify, session
+from flask import Flask, render_template, redirect, url_for, request, send_file, flash, session
 from werkzeug.utils import secure_filename
 import os
 from io import BytesIO
@@ -7,12 +7,13 @@ from steno.image_steno import encode_image, decode_image
 from steno.audio_steno import encode_audio, decode_audio, encode_image_in_audio, decode_image_in_audio
 from steno.video_steno import encode_video, decode_video, FRAMES_DIR
 import cv2
+import base64
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ILOVEINF2005!'  # Set a secret key for flashing messages
+app.secret_key = 'ILOVEINF2005!'  # Set a secret key for flashing messages
+
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['OUTPUT_FOLDER'] = 'encoded_files'
-app.config['FRAME_FOLDER'] = 'frames'
 
 # Ensure the upload and output folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -33,21 +34,39 @@ def index():
 def audio():
     return render_template('encode_audio.html')
 
-@app.route('/encode_audio', methods=['POST'])
+@app.route('/encode_audio', methods=['GET', 'POST'])
 def encode_audio_route():
-    if 'payload_audio' not in request.files or 'cover_audio' not in request.files:
-        flash('Both payload and cover files are required')
-        return redirect(url_for('audio'))
-    
-    payload = request.files['payload_audio']
-    cover = request.files['cover_audio']
-    bit_size = int(request.form.get('bit_size', 1))
+    if request.method == 'POST':
+        if 'payload_audio' not in request.files or 'cover_audio' not in request.files:
+            flash('Both payload and cover files are required', 'error')
+            return redirect(url_for('audio'))
+        
+        payload = request.files['payload_audio']
+        cover = request.files['cover_audio']
+        bit_size = request.form.get('bit_size', 1)
 
-    if payload.filename == '' or cover.filename == '':
-        flash('Both payload and cover files are required')
-        return redirect(url_for('audio'))
-    
-    if payload and cover:
+        if payload.filename == '' or cover.filename == '':
+            flash('Both payload and cover files are required', 'error')
+            return redirect(url_for('audio'))
+
+        # Validate bit_size
+        try:
+            bit_size = int(bit_size)
+            if not (1 <= bit_size <= 8):
+                flash('Bit size must be between 1 and 8', 'error')
+                return redirect(url_for('audio'))
+        except ValueError:
+            flash('Invalid bit size', 'error')
+            return redirect(url_for('audio'))
+
+        # Validate file types using allowed_file function
+        if not allowed_file(payload.filename, {'txt', 'png'}):
+            flash('Unsupported payload file type. Allowed types: .txt, .png', 'error')
+            return redirect(url_for('audio'))
+        if not allowed_file(cover.filename, {'wav', 'mp3'}):
+            flash('Unsupported cover file type. Allowed type: .wav, .mp3', 'error')
+            return redirect(url_for('audio'))
+
         payload_filename = secure_filename(payload.filename)
         cover_filename = secure_filename(cover.filename)
 
@@ -58,43 +77,54 @@ def encode_audio_route():
         cover.save(cover_path)
 
         try:
-            file_extension = os.path.splitext(payload_path)[1].lower()
-            if file_extension == '.txt':
+            # Process based on payload file extension
+            payload_extension = os.path.splitext(payload_filename)[1].lower()
+
+            if payload_extension == '.txt':
+                # Call the encode_audio function for text payloads
                 output_path = encode_audio(payload_path, cover_path, bit_size=bit_size, output_dir=app.config['OUTPUT_FOLDER'])
-                flash('Encoding successful')
-                return send_file(output_path, as_attachment=True)
-            
-            elif file_extension == '.png':
-                output_path, json_path = encode_image_in_audio(payload_path, cover_path, bit_size=bit_size, output_dir=app.config['OUTPUT_FOLDER'])
-                flash('Encoding successful')
-                
-                # Create a ZIP file containing both the encoded audio and the JSON file
-                memory_file = BytesIO()
-                with zipfile.ZipFile(memory_file, 'w') as zf:
-                    zf.write(output_path, os.path.basename(output_path))
-                    zf.write(json_path, os.path.basename(json_path))
-                memory_file.seek(0)
-                
-                return send_file(
-                    memory_file,
-                    mimetype='application/zip',
-                    as_attachment=True,
-                    attachment_filename='encoded_files.zip',
+                flash('Encoding successful!', 'success')
+                return send_file(output_path, as_attachment=True,
+                                download_name=os.path.basename(output_path))
+            elif payload_extension == '.png':
+                # Call the encode_image_in_audio function for image payloads
+                output_path, payload_size = encode_image_in_audio(
+                    png_file=payload_path,
+                    audio_file=cover_path,
+                    bit_size=bit_size,
+                    output_dir=app.config['OUTPUT_FOLDER']
                 )
-                
-            
+                flash(f'Encoding successful! Payload size: {payload_size} bytes', 'success')
+
+                # Clean up uploaded files
+                if os.path.exists(payload_path):
+                    os.remove(payload_path)
+                if os.path.exists(cover_path):
+                    os.remove(cover_path)
+
+                return send_file(output_path, as_attachment=True,
+                                download_name=os.path.basename(output_path))
+                # Render the result template and pass the filename
+                #return render_template('encode_image_in_audio_result.html', download_name=os.path.basename(output_path))
+                    
             else:
-                flash('Unsupported payload file type')
+                flash('Unsupported payload file type', 'error')
                 return redirect(url_for('audio'))
 
-        except Exception as e:
-            flash(f'Encoding failed: {str(e)}')
+        except ValueError as e:
+            flash(f'Encoding failed: {str(e)}', 'error')
             return redirect(url_for('audio'))
-
-    flash('Invalid file')
-    return redirect(url_for('audio'))
-
-
+        except Exception as e:
+            flash(f'An unexpected error occurred: {str(e)}', 'error')
+            return redirect(url_for('audio'))
+        finally:
+            # Clean up uploaded files
+            if os.path.exists(payload_path):
+                os.remove(payload_path)
+            if os.path.exists(cover_path):
+                os.remove(cover_path)
+    else:
+        return render_template('encode_image_in_audio.html')
 ################################# VIDEO ENCODING PAGE #####################################################################################
 @app.route('/video')
 def video():
@@ -326,7 +356,75 @@ def decode_image_page():
 
 @app.route('/decode_image', methods=['GET','POST'])
 def decode_image_post():
-    return render_template('decode_image.html')
+    if request.method == 'POST':
+        if 'decode_payload_image' not in request.files:
+            flash('No audio file uploaded', 'error')
+            return redirect(request.url)
+
+        audio_file = request.files['decode_payload_image']
+        bit_size = request.form.get('bit_size', 1)
+        payload_size = request.form.get('payload_size', None)
+
+        if audio_file.filename == '':
+            flash('No audio file selected', 'error')
+            return redirect(request.url)
+
+        # Validate bit_size
+        try:
+            bit_size = int(bit_size)
+            if not (1 <= bit_size <= 8):
+                flash('Bit size must be between 1 and 8', 'error')
+                return redirect(request.url)
+        except ValueError:
+            flash('Invalid bit size', 'error')
+            return redirect(request.url)
+
+        # Validate payload_size
+        if payload_size is None or payload_size == '':
+            flash('Payload size is required for decoding.', 'error')
+            return redirect(request.url)
+        try:
+            payload_size = int(payload_size)
+            if payload_size <= 0:
+                flash('Payload size must be a positive integer.', 'error')
+                return redirect(request.url)
+        except ValueError:
+            flash('Invalid payload size.', 'error')
+            return redirect(request.url)
+
+        # Validate audio file type
+        if not allowed_file(audio_file.filename, {'wav'}):
+            flash('Unsupported audio file type. Only WAV files are allowed.', 'error')
+            return redirect(request.url)
+
+        # Save the uploaded audio file
+        audio_filename = secure_filename(audio_file.filename)
+        audio_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
+        audio_file.save(audio_path)
+
+        try:
+            # Call the decode_image_in_audio function
+            output_image_path = decode_image_in_audio(
+                audio_file=audio_path,
+                bit_size=bit_size,
+                payload_size=payload_size
+            )
+
+            # Send the decoded image file to the user
+            return send_file(output_image_path, as_attachment=True,
+                             download_name=os.path.basename(output_image_path))
+        except Exception as e:
+            flash(f'Decoding failed: {str(e)}', 'error')
+            return redirect(request.url)
+        finally:
+            # Clean up uploaded files
+            if os.path.exists(audio_path):
+                os.remove(audio_path)
+            # Remove the output image after sending
+
+    else:
+        return render_template('decode_image_in_audio.html')
+
 
 @app.route('/decode_audio')
 def decode_audio_page():
