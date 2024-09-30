@@ -12,6 +12,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'ILOVEINF2005!'  # Set a secret key for flashing messages
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['OUTPUT_FOLDER'] = 'encoded_files'
+app.config['FRAME_FOLDER'] = 'frames'
 
 # Ensure the upload and output folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -78,8 +79,9 @@ def encode_audio_route():
                     memory_file,
                     mimetype='application/zip',
                     as_attachment=True,
-                    attachment_filename='encoded_files.zip'
+                    attachment_filename='encoded_files.zip',
                 )
+                
             
             else:
                 flash('Unsupported payload file type')
@@ -172,7 +174,7 @@ def encode_video_route():
             encode_video(
                 video_file=video_path,
                 data_file=payload_path,
-                frame_number=1,
+                frame_number=frame_number,
                 lsb_bits=lsb_bits,
                 output_video=output_video_path,
                 frames_folder=FRAMES_DIR
@@ -194,6 +196,7 @@ def encode_video_route():
             session.pop('total_frames', None)
             session.pop('fps', None)
             session.pop('video_uploaded', None)
+
     else:
         flash('Invalid payload file type. Please upload a .txt file.', 'error')
         return redirect(url_for('video'))
@@ -256,8 +259,6 @@ def decode_text_post():
         
         stego_file = request.files['decode_payload_text']
         
-
-
         if stego_file.filename == '':
             flash('No selected file', 'error')
             return redirect(request.url)
@@ -280,7 +281,7 @@ def decode_text_post():
 
                 elif file_extension in ['.mp4', '.avi']:
                     bit_size = int(request.form.get('bit_size', 1))
-                    frame_number = 1
+                    frame_number = int(request.form.get('frame_number', 1))
 
                     decoded_message = decode_video(
                         video_file=file_path,

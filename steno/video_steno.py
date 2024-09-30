@@ -153,14 +153,13 @@ def lsb_decode(frame_number, lsb_bits, frames_folder=FRAMES_DIR):
     return decoded_message
 
 def decode_video(video_file, frame_number, lsb_bits, frames_folder=FRAMES_DIR):
-    clear_output_directory(frames_folder)
 
-    # Extract frames
+    clear_output_directory(frames_folder)
     extract_frames(video_file, frames_folder)
-    
-    # Decode the message
+    cap = cv2.VideoCapture(video_file)
+    cap.release()
     decoded_data = lsb_decode(frame_number, lsb_bits, frames_folder)
-    
+
     # Clean up and return
     clear_output_directory(frames_folder)
     return decoded_data

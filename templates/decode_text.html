@@ -82,20 +82,32 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- Bit Size Input -->
+                        <div class="mb-4">
+                            <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB Count (1-8)</label>
+                            <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="1" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
+                            <div>Selected Bit Size: <span id="bitSizeDisplay">1</span>
+                            </div>
+                        </div>
 
-                                                <!-- Bit Size Input -->
-                                                <div class="mb-4">
-                                                    <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB Count (1-8)</label>
-                                                    <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="1" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
-                                                    <div>Selected Bit Size: <span id="bitSizeDisplay">1</span>
-                                                    </div>
-                                                </div>
+                        <!-- Checkbox for Custom Frame Number -->
+                        <input type="checkbox" id="use_custom_frame" name="use_custom_frame">
+                        <label for="use_custom_frame">Use custom Frame Number (for Video-cover files only)</label>
+                        <br>
+                        (default = Check All Frames)
+                        <br><br>
+
+                        <!-- Frame Number Input (Initially Hidden) -->
+                        <div id="frame_number_div" style="display: none;">
+                            <label for="frame_number">Frame Number:</label><br>
+                            <input type="number" id="frame_number" name="frame_number" min="1" value="1"><br><br>
+                        </div>
 
                         <div class="mt-4">
                             <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                                 Decode
                             </button>
-                        </div>
+                            </div>
                     </form>
 
                     {% if decoded_message %}
@@ -108,18 +120,29 @@
             </div>
         </div>
     </main>
-    <script>        
+    <script>
+        const useCustomFrameCheckbox = document.getElementById('use_custom_frame');
+        const frameNumberDiv = document.getElementById('frame_number_div');
+        const bitSizeInput = document.getElementById('bit_size');
+        const bitSizeDisplay = document.getElementById('bitSizeDisplay');
+        bitSizeDisplay.textContent = bitSizeInput.value;
+
         var urls = 
         {
             text: "{{ url_for('decode_text_post') }}",
             audio: "{{ url_for('decode_audio_post') }}",
             image: "{{ url_for('decode_image_post') }}"
         };
-        // Bit Size Display
-        const bitSizeInput = document.getElementById('bit_size');
-        const bitSizeDisplay = document.getElementById('bitSizeDisplay');
-        bitSizeDisplay.textContent = bitSizeInput.value;
 
+        useCustomFrameCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            frameNumberDiv.style.display = 'block';
+        } else {
+            frameNumberDiv.style.display = 'none';
+        }
+        });
+        
+        // Bit Size Display
         bitSizeInput.addEventListener('input', function() {
             bitSizeDisplay.textContent = bitSizeInput.value;
         });

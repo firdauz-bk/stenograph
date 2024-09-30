@@ -52,27 +52,33 @@
                         <!-- Step 1: Upload Video -->
                         <div id="step1" class="mb-8">
                             <h2 class="text-2xl font-semibold mb-4">Upload a Video File</h2>
-                            <form id="uploadForm" action="{{ url_for('upload_video') }}" method="post" enctype="multipart/form-data">
-                                <div class="mb-4">
-                                    <label for="cover_video" class="block text-sm font-medium text-gray-700">Video File (MP4 or AVI)</label>
-                                    <input type="file" id="cover_video" name="cover_video" accept=".mp4,.avi" class="mt-1 block w-full" required>
+                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                    <form id="uploadForm" action="{{ url_for('upload_video') }}" method="post" enctype="multipart/form-data">
+                                        <div class="space-y-1 text-center">
+                                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                            </svg>
+                                            <label for="cover_video" class="block text-sm font-medium text-gray-700">Drag & Drop to Upload<br> Cover File (MP4 or AVI)</label>
+                                            <input type="file" id="cover_video" name="cover_video" accept=".mp4,.avi" class="mt-1 block w-full" required>
+                                        </div>
                                 </div>
-                                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                    Upload and Process
-                                </button>
-                            </form>
-                            <div id="uploadStatus">
-                                <!-- Display flashed messages -->
-                                {% with messages = get_flashed_messages(with_categories=true) %}
-                                    {% if messages %}
-                                        {% for category, message in messages %}
-                                            <div class="mt-4 p-4 rounded bg-{{ 'green' if category == 'success' else 'red' }}-100 text-{{ 'green' if category == 'success' else 'red' }}-800">
-                                                {{ message }}
-                                            </div>
-                                        {% endfor %}
-                                    {% endif %}
-                                {% endwith %}
-                            </div>
+                                        <br>
+                                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" >
+                                        Upload and Process
+                                        </button>
+                                    </form>
+                                    <div id="uploadStatus">
+                                        <!-- Display flashed messages -->
+                                        {% with messages = get_flashed_messages(with_categories=true) %}
+                                            {% if messages %}
+                                                {% for category, message in messages %}
+                                                    <div class="mt-4 p-4 rounded bg-{{ 'green' if category == 'success' else 'red' }}-100 text-{{ 'green' if category == 'success' else 'red' }}-800">
+                                                        {{ message }}
+                                                    </div>
+                                                {% endfor %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    </div>
                         </div>
 
                                 <!-- Step 2: Encode Message (Displayed After Video Upload) -->
@@ -101,14 +107,19 @@
                                                 </div>
 
                                                 <!-- Payload File Input -->
-                                                <div class="mb-4">
-                                                    <label for="payload_video" class="block text-sm font-medium text-gray-700">Payload (Text File)</label>
-                                                    <input type="file" id="payload_video" name="payload_video" accept=".txt" class="mt-1 block w-full" required>
+                                                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                                        <div class="space-y-1 text-center">
+                                                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                                            </svg>
+                                                            <label for="payload_video" class="block text-sm font-medium text-gray-700">Drag & Drop to Upload <br>Payload (Text File)</label>
+                                                            <input type="file" id="payload_video" name="payload_video" accept=".txt" class="mt-1 block w-full" required>
+                                                        </div>
                                                 </div>
-
-                                            <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
-                                                Encode
-                                            </button>
+                                                <br>
+                                                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-hf-blue hover:bg-hf-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-hf-blue">
+                                                    Encode
+                                                </button>
                                             </form>
                                     </div>
                                 {% endif %}
@@ -119,8 +130,7 @@
                 </div>
             </div>
         </div>
-    </div>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>        
+    </div>  
     <!-- JavaScript to Update Displayed Values -->
     <script>
         var urls = 
@@ -157,5 +167,6 @@
             bitSizeDisplay.textContent = bitSizeInput.value;
         });
     </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>      
 </body>
 </html>
