@@ -7,3 +7,11 @@ MarkupSafe==2.1.5
 opencv-python==4.10.0.84
 numpy==1.24.3
 moviepy==1.0.3
+grpcio==1.64.1
+imageio==2.35.1
+imageio-ffmpeg==0.5.1
+tensorflow-io-gcs-filesystem==0.31.0
+torchaudio==2.3.1+cu121
+torchvision==0.18.1+cu121
+typing_extensions==4.12.2
+pydub==0.25.1
