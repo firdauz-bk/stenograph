@@ -283,6 +283,22 @@ def decode_text_post():
                     bit_size = int(request.form.get('bit_size', 1))
                     frame_number = int(request.form.get('frame_number', 1))
 
+                    # Get total number of frames in the video
+                    cap = cv2.VideoCapture(file_path)
+                    if not cap.isOpened():
+                        cap.release()
+                        os.remove(file_path)
+                        flash('Error opening video file', 'error')
+                        return redirect(request.url)
+                    
+                    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    cap.release()
+
+                    if frame_number < 0 or frame_number >= total_frames:
+                        os.remove(file_path)
+                        flash(f'Invalid frame number. The video has {total_frames} frames.', 'error')
+                        return redirect(request.url)
+
                     decoded_message = decode_video(
                         video_file=file_path,
                         frame_number=frame_number,
@@ -290,7 +306,9 @@ def decode_text_post():
                         frames_folder=FRAMES_DIR
                     )
                 else:
-                    raise ValueError("Unsupported file type")
+                    os.remove(file_path)
+                    flash('Unsupported file type', 'error')
+                    return redirect(request.url)
                 
                 # Remove the uploaded file after processing
                 os.remove(file_path)
