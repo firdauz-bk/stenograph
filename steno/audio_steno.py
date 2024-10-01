@@ -30,7 +30,7 @@ def convert_mp3_to_wav(mp3_path, wav_path):
 
 
 def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: str = "encoded"):
-    # Ensure bit_size is between 1 and 8, as a byte has 8 bits
+    # Ensure bit_size is between 1 and 8
     if not (1 <= bit_size <= 8):
         raise ValueError("bit_size must be between 1 and 8")
 
@@ -38,39 +38,34 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
     with open(txt_file, 'r') as file:
         txt = file.read()
 
+    # Append the end-of-message marker
+    end_marker = '$$###$$'
+    txt += end_marker
 
+    # Open the audio file
     try:
         if not audio_file.endswith(".wav"):
-            #wav_path = "temp_audio.wav"  # Temporary path for the converted WAV file
             wav_path = convert_to_wav(audio_file)
             audio = wave.open(wav_path, mode="rb")
         else:
-        # Open the audio file
             audio = wave.open(audio_file, mode="rb")
-    except:
-        print("Error with file type, please check")
+    except Exception as e:
+        print(f"Error with file type: {e}")
+        return
 
-    
-    # if not audio_file.endswith(".wav"):
-    #     #wav_path = "temp_audio.wav"  # Temporary path for the converted WAV file
-    #     wav_path = convert_to_wav(audio_file)
-    #     audio = wave.open(wav_path, mode="rb")
-    # else:
-    #     # Open the audio file
-    #     audio = wave.open(audio_file, mode="rb")
-
-
+    # Read frames and convert them to a bytearray
     frame_bytes = bytearray(list(audio.readframes(audio.getnframes())))
-
-    # Padding the text with '#' to fill the rest of the audio file
-    required_padding = int((len(frame_bytes) * bit_size - len(txt) * 8) / 8)
-    txt = txt + required_padding * '#'
 
     # Convert text to bit representation
     bits = ''.join([bin(ord(i)).lstrip('0b').rjust(8, '0') for i in txt])
     bit_chunks = [bits[i:i + bit_size] for i in range(0, len(bits), bit_size)]
 
-    # Replace LSBs (or more significant bits, depending on bit_size) of each byte of the audio file with the bits of the text
+    # Ensure the message fits within the audio file
+    if len(bit_chunks) > len(frame_bytes):
+        print("Error: Text is too long to encode in the provided audio file.")
+        return
+
+    # Replace LSBs of each byte of the audio file with the bits of the text
     for i, bit_chunk in enumerate(bit_chunks):
         byte = frame_bytes[i]
         # Create a mask to clear out the last 'bit_size' bits and set them to the new bit_chunk
@@ -81,13 +76,12 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
     frame_modified = bytes(frame_bytes)
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = f"encoded_{os.path.basename(audio_file)}"
-    new_audio = wave.open(str(output_path), 'wb')
-    new_audio.setparams(audio.getparams())
-    new_audio.writeframes(frame_modified)
-    new_audio.close()
-    audio.close()
+    output_path = output_dir / f"encoded_{os.path.basename(audio_file)}"
+    with wave.open(str(output_path), 'wb') as new_audio:
+        new_audio.setparams(audio.getparams())
+        new_audio.writeframes(frame_modified)
 
+    audio.close()
     return str(output_path)
 
 def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None) -> str:
@@ -108,15 +102,24 @@ def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None
     # Convert byte bits back to characters
     txt = ''.join([chr(int(byte_chunk, 2)) for byte_chunk in byte_chunks])
 
-    # Split the text at the padding delimiter '###'
-    decoded_audio = txt.split("###")[0]
+    # Define the end-of-message marker
+    end_marker = '$$###$$'
 
-    # Save the decoded message to a file if the file path is provided
+    # Find the position of the end marker
+    end_pos = txt.find(end_marker)
+
+    # Extract the original message
+    if end_pos != -1:
+        decoded_message = txt[:end_pos]
+    else:
+        decoded_message = txt
+
+    # Optionally save the decoded message to a file
     if output_txt_file:
         with open(output_txt_file, 'w') as file:
-            file.write(decoded_audio)
+            file.write(decoded_message)
 
-    return decoded_audio
+    return decoded_message
 
 
 #Function to encode an image into an audio file
