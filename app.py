@@ -283,58 +283,72 @@ def decode_text_page():
 @app.route('/decode_text', methods=['GET','POST'])
 def decode_text_post():
     if request.method == 'POST':
-        if 'decode_payload_image' not in request.files:
-            flash('No audio file uploaded', 'error')
+        if 'decode_payload_text' not in request.files:
+            flash('No file part', 'error')
             return redirect(request.url)
-
-        audio_file = request.files['decode_payload_image']
-        bit_size = request.form.get('bit_size', 1)
-
-        if audio_file.filename == '':
-            flash('No audio file selected', 'error')
+        
+        stego_file = request.files['decode_payload_text']
+        
+        if stego_file.filename == '':
+            flash('No selected file', 'error')
             return redirect(request.url)
+        
+        if stego_file:
+            filename = secure_filename(stego_file.filename)
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            stego_file.save(file_path)
+                    
+            try:
+            #### DETERMINE THE FILETYPE TO USE THEIR RESPECTIVE FUNCTION ####
+                file_extension = os.path.splitext(filename)[1].lower()
+                if file_extension in ['.png', '.gif', '.bmp', '.jpg']:
+                    bit_size = int(request.form.get('bit_size', 1))
+                    decoded_message = decode_image(file_path, lsb_count=bit_size)
 
-        # Validate bit_size
-        try:
-            bit_size = int(bit_size)
-            if not (1 <= bit_size <= 8):
-                flash('Bit size must be between 1 and 8', 'error')
+                elif file_extension in ['.mp3', '.wav']:
+                    bit_size = int(request.form.get('bit_size', 1))
+                    decoded_message = decode_audio(file_path, bit_size=bit_size)
+
+                elif file_extension in ['.mp4', '.avi']:
+                    bit_size = int(request.form.get('bit_size', 1))
+                    frame_number = int(request.form.get('frame_number', 1))
+
+                    # Get total number of frames in the video
+                    cap = cv2.VideoCapture(file_path)
+                    if not cap.isOpened():
+                        cap.release()
+                        os.remove(file_path)
+                        flash('Error opening video file', 'error')
+                        return redirect(request.url)
+                    
+                    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    cap.release()
+
+                    if frame_number < 0 or frame_number >= total_frames:
+                        os.remove(file_path)
+                        flash(f'Invalid frame number. The video has {total_frames} frames.', 'error')
+                        return redirect(request.url)
+
+                    decoded_message = decode_video(
+                        video_file=file_path,
+                        frame_number=frame_number,
+                        lsb_bits=bit_size,
+                        frames_folder=FRAMES_DIR
+                    )
+                else:
+                    os.remove(file_path)
+                    flash('Unsupported file type', 'error')
+                    return redirect(request.url)
+                
+                # Remove the uploaded file after processing
+                os.remove(file_path)
+                
+                return render_template('decode_text.html', decoded_message=decoded_message)
+            except Exception as e:
+                flash(f'Error decoding file: {str(e)}')
                 return redirect(request.url)
-        except ValueError:
-            flash('Invalid bit size', 'error')
-            return redirect(request.url)
-
-        # Validate audio file type
-        if not allowed_file(audio_file.filename, {'wav'}):
-            flash('Unsupported audio file type. Only WAV files are allowed.', 'error')
-            return redirect(request.url)
-
-        # Save the uploaded audio file
-        audio_filename = secure_filename(audio_file.filename)
-        audio_path = os.path.join(app.config['UPLOAD_FOLDER'], audio_filename)
-        audio_file.save(audio_path)
-
-        try:
-            # Call the updated decode_image_in_audio function
-            output_image_path = decode_image_in_audio(
-                audio_file=audio_path,
-                bit_size=bit_size
-            )
-
-            # Send the decoded image file to the user
-            return send_file(output_image_path, as_attachment=True,
-                             download_name=os.path.basename(output_image_path))
-        except Exception as e:
-            flash(f'Decoding failed: {str(e)}', 'error')
-            return redirect(request.url)
-        finally:
-            # Clean up uploaded files
-            if os.path.exists(audio_path):
-                os.remove(audio_path)
-            if os.path.exists(output_image_path):
-                os.remove(output_image_path)
-    else:
-        return render_template('decode_image_in_audio.html')
+        else:
+            return render_template('decode_text.html')
 
 @app.route('/decode_image')
 def decode_image_page():
