@@ -62,8 +62,7 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
 
     # Ensure the message fits within the audio file
     if len(bit_chunks) > len(frame_bytes):
-        print("Error: Text is too long to encode in the provided audio file.")
-        return
+        raise ValueError("Error: Text is too long to encode in the provided audio file.")
 
     # Replace LSBs of each byte of the audio file with the bits of the text
     for i, bit_chunk in enumerate(bit_chunks):
