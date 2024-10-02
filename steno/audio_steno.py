@@ -172,7 +172,7 @@ def encode_image_in_audio(png_file: str, audio_file: str, bit_size: int = 1, out
     output_dir.mkdir(parents=True, exist_ok=True)
     audio_basename = os.path.basename(audio_file)
     audio_name, audio_ext = os.path.splitext(audio_basename)
-    output_filename = f"{payload_size}_encoded_{audio_name}{audio_ext}"
+    output_filename = f"encoded_{audio_name}{audio_ext}"
     output_path = output_dir / output_filename
 
     new_audio = wave.open(str(output_path), 'wb')

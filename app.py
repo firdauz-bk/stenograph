@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, send_file, flash, session
+from flask import Flask, abort, render_template, redirect, url_for, request, send_file, flash, session, send_from_directory
 from werkzeug.utils import secure_filename
 import os
 from io import BytesIO
@@ -31,7 +31,11 @@ def check_payload_for_eof(payload: bytes, eof_marker: bytes = b"$$###$$"):
 #################### INDEX PAGE ########################
 @app.route('/')                                        
 def index():                                           
-    return render_template('index.html')              
+    return render_template('index.html')         
+
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_from_directory(app.config['OUTPUT_FOLDER'], filename, as_attachment=True)     
 
 ################################# AUDIO ENCODING PAGE #####################################################################################
 @app.route('/audio')
@@ -94,8 +98,8 @@ def encode_audio_route():
                 # Call the encode_audio function for text payloads
                 output_path = encode_audio(payload_path, cover_path, bit_size=bit_size, output_dir=app.config['OUTPUT_FOLDER'])
                 flash('Encoding successful!', 'success')
-                return send_file(output_path, as_attachment=True,
-                                download_name=os.path.basename(output_path))
+                return render_template('encode_audio.html', original_audio=os.path.basename(cover_filename), encoded_audio=os.path.basename(output_path), encoding_success=True, download_filename=os.path.basename(output_path))
+            
             elif payload_extension == '.png':
                 # Call the encode_image_in_audio function for image payloads
                 output_path, payload_size = encode_image_in_audio(
@@ -109,11 +113,8 @@ def encode_audio_route():
                 # Clean up uploaded files
                 if os.path.exists(payload_path):
                     os.remove(payload_path)
-                if os.path.exists(cover_path):
-                    os.remove(cover_path)
 
-                return send_file(output_path, as_attachment=True,
-                                download_name=os.path.basename(output_path))
+                return render_template('encode_audio.html', original_audio=os.path.basename(cover_filename), encoded_audio=os.path.basename(output_path), encoding_success=True, download_filename=os.path.basename(output_path))
                 # Render the result template and pass the filename
                 #return render_template('encode_image_in_audio_result.html', download_name=os.path.basename(output_path))
                     
@@ -131,10 +132,17 @@ def encode_audio_route():
             # Clean up uploaded files
             if os.path.exists(payload_path):
                 os.remove(payload_path)
-            if os.path.exists(cover_path):
-                os.remove(cover_path)
+
     else:
         return render_template('encode_image_in_audio.html')
+    
+# Add this new route to serve images from ORIGINAL and ENCODED folders
+@app.route('/<folder>/<filename>')
+def serve_audio(folder, filename):
+    if folder not in ['ORIGINAL', 'ENCODED']:
+        abort(404)
+    return send_from_directory(os.path.join(app.root_path, folder), filename)
+
 ################################# VIDEO ENCODING PAGE #####################################################################################
 @app.route('/video')
 def video():
@@ -228,7 +236,7 @@ def encode_video_route():
             
             flash('Encoding successful!', 'success')
             # Send the output video file to the user
-            return send_file(output_video_path, as_attachment=True, download_name=output_video_name)
+            return render_template('encode_video.html', original_video=os.path.basename(video_path), encoded_video=os.path.basename(output_video_path), encoding_success=True, download_filename=os.path.basename(output_video_path))
         
         except Exception as e:
             flash(f'Encoding failed: {str(e)}', 'error')
@@ -237,15 +245,24 @@ def encode_video_route():
         finally:
             # Clean up temporary files
             os.remove(payload_path)
-            os.remove(video_path)
             session.pop('video_path', None)
             session.pop('total_frames', None)
             session.pop('fps', None)
             session.pop('video_uploaded', None)
 
+            # Clean up uploaded files
+            if os.path.exists(payload_path):
+                os.remove(payload_path)
     else:
         flash('Invalid payload file type. Please upload a .txt file.', 'error')
         return redirect(url_for('video'))
+
+# Add this new route to serve images from ORIGINAL and ENCODED folders
+@app.route('/<folder>/<filename>')
+def serve_video(folder, filename):
+    if folder not in ['ORIGINAL', 'ENCODED']:
+        abort(404)
+    return send_from_directory(os.path.join(app.root_path, folder), filename)
 
 ################################# IMAGE ENCODING PAGE #####################################################################################
 @app.route('/image')
@@ -280,14 +297,14 @@ def encode_image_route():
         
         try:
             payload_extension = os.path.splitext(payload_filename)[1].lower()
-            
+
             if payload_extension in ['.txt']:
                 output_path = encode_image(cover_path, payload_path, output_filename, lsb_count=bit_size)
-                return send_file(output_path, as_attachment=True)
+                return render_template('encode_image.html', original_image=os.path.basename(cover_path), encoded_image=os.path.basename(output_path), encoding_success=True, download_filename=os.path.basename(output_path))
             
             elif payload_extension in ['.wav', '.mp3']:
                 output_path = encode_audio_into_image(cover_path, payload_path, output_filename, lsb_count=bit_size)
-                return send_file(output_path, as_attachment=True)
+                return render_template('encode_image.html', original_image=os.path.basename(cover_path), encoded_image=os.path.basename(output_path), encoding_success=True, download_filename=os.path.basename(output_path))
             
             else:
                 flash('Unsupported payload file type')
@@ -296,6 +313,15 @@ def encode_image_route():
         except Exception as e:
             flash(f'Encoding failed: {str(e)}')
             return redirect(url_for('image'))
+        
+    return render_template('encode_image.html')
+
+# Add this new route to serve images from ORIGINAL and ENCODED folders
+@app.route('/<folder>/<filename>')
+def serve_image(folder, filename):
+    if folder not in ['ORIGINAL', 'ENCODED']:
+        abort(404)
+    return send_from_directory(os.path.join(app.root_path, folder), filename)
 
 
 ################################# DECODING PAGE ###########################################################################################

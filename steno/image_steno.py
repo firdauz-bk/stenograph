@@ -166,7 +166,7 @@ def encode_audio_into_image(image_path, audio_path, output_image, lsb_count=1):
                     binary_index += lsb_count
 
     # Save the modified image
-    output_dir = "uploads"
+    output_dir = "ENCODED"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
