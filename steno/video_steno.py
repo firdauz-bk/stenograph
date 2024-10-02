@@ -107,7 +107,7 @@ def create_video_with_audio(audio_path, output_video, fps, frames_folder=FRAMES_
     
     # If no valid extension is provided, default to '.mkv'
     if file_extension not in ['.mkv', '.avi']:
-        file_extension = '.mkv'
+        file_extension = '.avi'
         output_video = output_video.rsplit('.', 1)[0] + file_extension
     
     # Save the video with the appropriate extension and codec
