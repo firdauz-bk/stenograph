@@ -177,7 +177,7 @@ def encode_video_route():
         return redirect(url_for('video'))
     
     payload = request.files['payload_video']
-    frame_number = int(request.form.get('frame_number', 1))
+    frame_number = int(request.form.get('frame_number', 0))
     lsb_bits = int(request.form.get('bit_size', 1))
     
     total_frames = session.get('total_frames', 0)
