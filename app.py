@@ -144,7 +144,7 @@ def upload_video():
         flash('No video file selected', 'error')
         return redirect(url_for('video'))
     
-    if video and allowed_file(video.filename, {'mp4', 'avi'}):
+    if video and allowed_file(video.filename, {'mp4', 'avi', 'mkv'}):
         filename = secure_filename(video.filename)
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         video.save(video_path)
@@ -195,11 +195,17 @@ def encode_video_route():
         payload.save(payload_path)
     
         try:
-            # Paths and parameters
             video_path = session['video_path']
-            output_video_name = f"encoded_{os.path.splitext(os.path.basename(video_path))[0]}.avi"
+            video_extension = os.path.splitext(video_path)[1].lower()
+            if video_extension == '.mkv':
+                output_video_name = f"encoded_{os.path.splitext(os.path.basename(video_path))[0]}.mkv"
+            elif video_extension == '.avi':
+                output_video_name = f"encoded_{os.path.splitext(os.path.basename(video_path))[0]}.avi"
+            else:
+                # Default to .avi if no valid extension is provided
+                output_video_name = f"encoded_{os.path.splitext(os.path.basename(video_path))[0]}.avi"
+
             output_video_path = os.path.join(app.config['OUTPUT_FOLDER'], output_video_name)
-            
             # Call the encode_video function
             encode_video(
                 video_file=video_path,
@@ -309,7 +315,7 @@ def decode_text_post():
                     bit_size = int(request.form.get('bit_size', 1))
                     decoded_message = decode_audio(file_path, bit_size=bit_size)
 
-                elif file_extension in ['.mp4', '.avi']:
+                elif file_extension in ['.mp4', '.avi', '.mkv']:
                     bit_size = int(request.form.get('bit_size', 1))
                     frame_number = int(request.form.get('frame_number', 1))
 

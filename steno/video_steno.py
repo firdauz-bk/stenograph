@@ -73,6 +73,23 @@ def lsb_encode(frame_number, lsb_bits, data_file, frames_folder=FRAMES_DIR):
     
     image.save(spec_frame)
 
+# def create_video_with_audio(audio_path, output_video, fps, frames_folder=FRAMES_DIR):
+#     frame_files = [
+#         os.path.join(frames_folder, f)
+#         for f in sorted(
+#             os.listdir(frames_folder),
+#             key=lambda x: int(x.split('_')[1].split('.')[0])
+#         )
+#     ]
+#     clip = ImageSequenceClip(frame_files, fps=fps)
+#     video = VideoFileClip(audio_path)
+#     final_video = clip.set_audio(video.audio)
+#     output_video = output_video.rsplit('.', 1)[0] + '.avi'
+#     final_video.write_videofile(output_video, codec='ffv1')
+#     final_video.close()
+#     clip.close()
+#     video.close()
+
 def create_video_with_audio(audio_path, output_video, fps, frames_folder=FRAMES_DIR):
     frame_files = [
         os.path.join(frames_folder, f)
@@ -84,11 +101,22 @@ def create_video_with_audio(audio_path, output_video, fps, frames_folder=FRAMES_
     clip = ImageSequenceClip(frame_files, fps=fps)
     video = VideoFileClip(audio_path)
     final_video = clip.set_audio(video.audio)
-    output_video = output_video.rsplit('.', 1)[0] + '.avi'
+    
+    # Extract the file extension from the output_video (default to '.mkv' if none is provided)
+    file_extension = os.path.splitext(output_video)[1].lower()
+    
+    # If no valid extension is provided, default to '.mkv'
+    if file_extension not in ['.mkv', '.avi']:
+        file_extension = '.mkv'
+        output_video = output_video.rsplit('.', 1)[0] + file_extension
+    
+    # Save the video with the appropriate extension and codec
     final_video.write_videofile(output_video, codec='ffv1')
+    
     final_video.close()
     clip.close()
     video.close()
+
 
 def clear_output_directory(output_folder=FRAMES_DIR):
     if os.path.exists(output_folder):
