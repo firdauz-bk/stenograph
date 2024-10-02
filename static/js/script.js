@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // File upload preview and drag & drop for payload
     setupFileUpload('payload_audio', 'Upload a text or image file', ['.txt', '.png']);
     setupFileUpload('payload_video', 'Upload a text', ['.txt']);
-    setupFileUpload('payload_image', 'Upload a text or audio file', ['.txt', '.wav']);
+    setupFileUpload('payload_image', 'Upload a text or audio file', ['.txt', '.wav', '.mp3']);
     
     // File upload preview and drag & drop for cover object
     setupFileUpload('cover_audio', 'Upload an audio file', ['.mp3', '.wav']);
