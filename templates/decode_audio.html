@@ -53,7 +53,7 @@
                     <form action="{{ url_for('decode_audio_post') }}" method="post" enctype="multipart/form-data">
                         <div class="mt-4">
                             <label for="decode_payload_audio" class="block text-sm font-medium text-gray-700">
-                                Stego File (image)
+                                Extracting AUDIO payload from IMAGE cover.
                             </label>
                             <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                                 <div class="space-y-1 text-center">
@@ -74,12 +74,12 @@
                             </div>
                         </div>
 
-                        <div>
-                            <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB count (1-8)</label>
-                            <div class="flex items-center space-x-4">
-                                <input type="range" name="bit_size" id="bit_size" min="1" max="8" value="1" class="slider" oninput="updateSliderValue(this.value)">
-                                <span id="slider_value" class="text-sm font-medium text-gray-700">4</span>
-                            </div>
+                        <!-- Bit Size Input -->
+                        <div class="mb-4">
+                            <label for="bit_size" class="block text-sm font-medium text-gray-700">LSB Count (1-8)</label>
+                                <input type="range" id="bit_size" name="bit_size" min="1" max="8" value="1" class="mt-1 block w-full" oninput="bitSizeDisplay.textContent = bit_size.value">
+                                <div>Selected Bit Size: <span id="bitSizeDisplay">1</span>
+                                </div>
                         </div>
 
                         <div class="mt-4">
@@ -103,7 +103,6 @@
         const bitSizeInput = document.getElementById('bit_size');
         const bitSizeDisplay = document.getElementById('bitSizeDisplay');
         bitSizeDisplay.textContent = bitSizeInput.value;
-
         var urls = 
         {
             text: "{{ url_for('decode_text_post') }}",
@@ -113,7 +112,7 @@
 
         // Bit Size Display
         bitSizeInput.addEventListener('input', function() {
-            bitSizeDisplay.textContent = bitSizeInput.value;
+        bitSizeDisplay.textContent = bitSizeInput.value;
         });
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
