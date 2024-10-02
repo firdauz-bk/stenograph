@@ -12,8 +12,8 @@ import base64
 app = Flask(__name__)
 app.secret_key = 'ILOVEINF2005!'  # Set a secret key for flashing messages
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['OUTPUT_FOLDER'] = 'encoded_files'
+app.config['UPLOAD_FOLDER'] = 'ORIGINAL'
+app.config['OUTPUT_FOLDER'] = 'ENCODED'
 
 # Ensure the upload and output folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -280,6 +280,7 @@ def encode_image_route():
         
         try:
             payload_extension = os.path.splitext(payload_filename)[1].lower()
+            
             if payload_extension in ['.txt']:
                 output_path = encode_image(cover_path, payload_path, output_filename, lsb_count=bit_size)
                 return send_file(output_path, as_attachment=True)

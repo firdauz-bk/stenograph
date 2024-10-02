@@ -59,7 +59,7 @@ def encode_image(image_path, text_file, output_image, lsb_count=1):
         raise ValueError("The message is too long to be encoded in the image.")
 
     # Save the encoded image
-    output_dir = "encoded_files"
+    output_dir = "ENCODED"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
