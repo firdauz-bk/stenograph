@@ -40,28 +40,19 @@
                             <option value="image">Extract Image</option>
                         </select>
                     </div>
-                    {% with messages = get_flashed_messages() %}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
-                            <div class="rounded-md bg-red-50 p-4 mb-4">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h3 class="text-sm font-medium text-red-800">
-                                            {{ messages[0] }}
-                                        </h3>
-                                    </div>
+                            {% for category, message in messages %}
+                                <div class="mt-4 p-4 rounded bg-{{ 'green' if category == 'success' else 'red' }}-100 text-{{ 'green' if category == 'success' else 'red' }}-800">
+                                    {{ message }}
                                 </div>
-                            </div>
+                            {% endfor %}
                         {% endif %}
                     {% endwith %}
 
                     <form action="{{ url_for('decode_audio_post') }}" method="post" enctype="multipart/form-data">
                         <div class="mt-4">
-                            <label for="decode_audio" class="block text-sm font-medium text-gray-700">
+                            <label for="decode_payload_audio" class="block text-sm font-medium text-gray-700">
                                 Stego File (image)
                             </label>
                             <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
@@ -70,14 +61,14 @@
                                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
                                     <div class="flex text-sm text-gray-600">
-                                        <label for="decode_audio" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                                        <label for="decode_payload_audio" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                                             <span>Upload a file</span>
-                                            <input id="decode_audio" name="decode_audio" type="file" class="sr-only" required>
+                                            <input id="decode_payload_audio" name="decode_payload_audio" type="file" class="sr-only" required>
                                         </label>
                                         <p class="pl-1">or drag and drop</p>
                                     </div>
                                     <p class="text-xs text-gray-500">
-                                        PNG, BMP or GIF up to 10MB
+                                        PNG or BMP up to 10MB
                                     </p>
                                 </div>
                             </div>
@@ -108,13 +99,22 @@
             </div>
         </div>
     </main>
-    <script>        
+    <script>
+        const bitSizeInput = document.getElementById('bit_size');
+        const bitSizeDisplay = document.getElementById('bitSizeDisplay');
+        bitSizeDisplay.textContent = bitSizeInput.value;
+
         var urls = 
         {
             text: "{{ url_for('decode_text_post') }}",
             audio: "{{ url_for('decode_audio_post') }}",
             image: "{{ url_for('decode_image_post') }}"
         };
+
+        // Bit Size Display
+        bitSizeInput.addEventListener('input', function() {
+            bitSizeDisplay.textContent = bitSizeInput.value;
+        });
     </script>
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>

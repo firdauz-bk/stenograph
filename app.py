@@ -3,7 +3,7 @@ from werkzeug.utils import secure_filename
 import os
 from io import BytesIO
 import zipfile
-from steno.image_steno import encode_image, decode_image
+from steno.image_steno import encode_image, decode_image, encode_audio_into_image, decode_audio_from_image
 from steno.audio_steno import encode_audio, decode_audio, encode_image_in_audio, decode_image_in_audio
 from steno.video_steno import encode_video, decode_video, FRAMES_DIR
 import cv2
@@ -263,7 +263,7 @@ def encode_image_route():
     bit_size = int(request.form.get('bit_size', 1))
     
     if payload.filename == '' or cover.filename == '':
-        flash('Both payload and cover files are required', 'error')
+        flash('Both payload and cover files are required')
         return redirect(url_for('image'))
     
     if payload and cover:
@@ -279,8 +279,18 @@ def encode_image_route():
         output_filename = f"encoded_{cover_filename}"
         
         try:
-            output_path = encode_image(cover_path, payload_path, output_filename, lsb_count=bit_size)
-            return send_file(output_path, as_attachment=True)
+            payload_extension = os.path.splitext(payload_filename)[1].lower()
+            if payload_extension in ['.txt']:
+                output_path = encode_image(cover_path, payload_path, output_filename, lsb_count=bit_size)
+                return send_file(output_path, as_attachment=True)
+            
+            elif payload_extension in ['.wav', '.mp3']:
+                output_path = encode_audio_into_image(cover_path, payload_path, output_filename, lsb_count=bit_size)
+                return send_file(output_path, as_attachment=True)
+            
+            else:
+                flash('Unsupported payload file type')
+                return redirect(url_for('image'))
         
         except Exception as e:
             flash(f'Encoding failed: {str(e)}')
@@ -448,6 +458,55 @@ def decode_audio_page():
 
 @app.route('/decode_audio', methods=['GET','POST'])
 def decode_audio_post():
+    if request.method == 'POST':
+        if 'decode_payload_audio' not in request.files:
+            flash('No image file uploaded', 'error')
+
+        image_file = request.files['decode_payload_audio']
+        bit_size = request.form.get('bit_size', 1)
+
+        if image_file.filename == '':
+            flash('No image file selected', 'error')
+            return redirect(request.url)
+
+        # Validate bit_size
+        try:
+            bit_size = int(bit_size)
+            if not (1 <= bit_size <= 8):
+                flash('Bit size must be between 1 and 8', 'error')
+                return redirect(request.url)
+        except ValueError:
+            flash('Invalid bit size', 'error')
+            return redirect(request.url)
+
+        # Validate audio file type
+        if not allowed_file(image_file.filename, {'png', 'bmp'}):
+            flash('Unsupported audio file type. Only PNG or BMP files are allowed.', 'error')
+            return redirect(request.url)
+
+        # Save the uploaded audio file
+        image_filename = secure_filename(image_file.filename)
+        image_path = os.path.join(app.config['UPLOAD_FOLDER'], image_filename)
+        image_file.save(image_path)
+
+        try:
+            # Call the decode_audio_from_image function
+            output_audio_path = decode_audio_from_image(
+                encoded_image=image_path,
+                lsb_count=bit_size
+            )
+
+            # Send the decoded audio file to the user
+            return send_file(
+                    output_audio_path, 
+                    as_attachment=True,
+                    download_name=os.path.basename(output_audio_path)
+                )
+
+        except Exception as e:
+            flash(f'Decoding failed: {str(e)}', 'error')
+            return redirect(request.url)
+
     return render_template('decode_audio.html')
 
 if __name__ == '__main__':
