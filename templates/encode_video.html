@@ -90,11 +90,11 @@
                                                 <!-- Frame Number Input -->
                                                     <div class="mb-4">
                                                         <label for="frame_number" class="block text-sm font-medium text-gray-700">
-                                                            Total Frames : {{ session['total_frames']}} | EoF character : 9
+                                                            Total Frames : {{ session['total_frames']}}
                                                             <br>
-                                                            Choose Available Frame (1 to {{ session['total_frames'] - 8 }})
+                                                            Choose Available Frame (1 to {{ session['total_frames']}})
                                                         </label>
-                                                        <input type="range" id="frame_number" name="frame_number" min="1" max="{{ session['total_frames'] - 8 }}" value="1" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
+                                                        <input type="range" id="frame_number" name="frame_number" min="1" max="{{ session['total_frames']}}" value="1" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
                                                         <div>Selected Frame: <span id="frameNumberDisplay">1</span></div>
                                                     </div>
 
