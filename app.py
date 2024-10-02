@@ -163,7 +163,7 @@ def upload_video():
         flash(f'Video uploaded successfully. {total_frames} frames detected.', 'success')
         return redirect(url_for('video'))
     
-    flash('Invalid file type. Please upload an MP4 or AVI file.', 'error')
+    flash('Invalid file type. Please upload an MP4, AVI or MKV file.', 'error')
     return redirect(url_for('video'))
 
 @app.route('/encode_video', methods=['POST'])
