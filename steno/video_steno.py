@@ -39,6 +39,9 @@ def generate_data(data_file):
     with open(data_file, 'r', encoding='utf8') as file:
         text = file.read()
 
+    if EOF_MARKER in text:
+        raise ValueError("Payload cannot contain EoF string.")
+
     binary_string = ''.join(format(ord(char), '08b') for char in text)
     binary_eof_marker = ''.join(format(ord(char), '08b') for char in EOF_MARKER)
     return binary_string + binary_eof_marker

@@ -24,6 +24,10 @@ def allowed_file(filename, allowed_extensions):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
+def check_payload_for_eof(payload: bytes, eof_marker: bytes = b"$$###$$"):
+    if eof_marker in payload:
+        raise ValueError("Payload cannot contain EOF string.")
+
 #################### INDEX PAGE ########################
 @app.route('/')                                        
 def index():                                           
@@ -81,6 +85,12 @@ def encode_audio_route():
             payload_extension = os.path.splitext(payload_filename)[1].lower()
 
             if payload_extension == '.txt':
+                # Read the image file content
+                with open(cover_path, 'rb') as img_file:
+                    img_data = img_file.read()
+
+                # Check if the payload contains the EOF marker
+                check_payload_for_eof(img_data)
                 # Call the encode_audio function for text payloads
                 output_path = encode_audio(payload_path, cover_path, bit_size=bit_size, output_dir=app.config['OUTPUT_FOLDER'])
                 flash('Encoding successful!', 'success')
@@ -253,7 +263,7 @@ def encode_image_route():
     bit_size = int(request.form.get('bit_size', 1))
     
     if payload.filename == '' or cover.filename == '':
-        flash('Both payload and cover files are required')
+        flash('Both payload and cover files are required', 'error')
         return redirect(url_for('image'))
     
     if payload and cover:

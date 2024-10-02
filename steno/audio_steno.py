@@ -39,7 +39,10 @@ def encode_audio(txt_file: str, audio_file: str, bit_size: int = 1, output_dir: 
         txt = file.read()
 
     # Append the end-of-message marker
-    end_marker = '$$###$$'
+    end_marker = '$$$###$$$'
+    if end_marker in txt:
+        raise ValueError("Payload cannot contain EoF string.")
+    
     txt += end_marker
 
     # Open the audio file
@@ -102,7 +105,7 @@ def decode_audio(audio_file: str, bit_size: int = 1, output_txt_file: str = None
     txt = ''.join([chr(int(byte_chunk, 2)) for byte_chunk in byte_chunks])
 
     # Define the end-of-message marker
-    end_marker = '$$###$$'
+    end_marker = '$$$###$$$'
 
     # Find the position of the end marker
     end_pos = txt.find(end_marker)

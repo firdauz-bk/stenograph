@@ -2,6 +2,8 @@ from PIL import Image
 import numpy as np
 import os
 
+eof = "$$$###$$$"
+
 def text_to_binary(text):
     # Convert the text into a binary string
     return ''.join(format(ord(char), '08b') for char in text)
@@ -26,7 +28,11 @@ def encode_image(image_path, text_file, output_image, lsb_count=1):
         text = file.read()
     
     # Append the end marker to the text
-    text += "###END###"
+    if eof in text:
+        raise ValueError("Payload cannot contain EoF string.")
+    
+    text += eof
+    
     binary_text = text_to_binary(text)
     binary_index = 0
     binary_len = len(binary_text)
@@ -78,8 +84,7 @@ def decode_image(image_path, lsb_count=1):
     image_array = np.array(image)
 
     binary_data = ""
-    end_marker = "###END###"
-    binary_end_marker = text_to_binary(end_marker)
+    binary_end_marker = text_to_binary(eof)
 
     for row in image_array:
         for pixel in row:
@@ -94,8 +99,8 @@ def decode_image(image_path, lsb_count=1):
                 # Check if we've reached the end of the marker
                 if len(binary_data) >= len(binary_end_marker):
                     decoded_text = binary_to_text(binary_data)
-                    if end_marker in decoded_text:
-                        return decoded_text[:decoded_text.index(end_marker)]
+                    if eof in decoded_text:
+                        return decoded_text[:decoded_text.index(eof)]
 
     # If no end marker is found, return the decoded text up to the marker
     return binary_to_text(binary_data)
