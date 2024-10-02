@@ -108,38 +108,40 @@ This section explains the **text-to-audio encoding and decoding** functionality 
 - **Error Handling**: If the message length exceeds the audio file’s capacity, an error will be raised during decoding.
   
 ### 3. Video
+
 #### 3.1 Text to Video
+
 ##### 3.1.1 Encoding Process
-1. **Text to Video Conversion**:
-   - The secret text message is first converted into its binary representation. Each character is represented as an 8-bit binary number.
 
-2. **Encoding the Binary Data in Video Frames**:
-   - The video is read frame by frame using the `cv2.VideoCapture()` function.
-   - For each pixel in every frame, the least significant bit (LSB) of each color channel (RGB) is modified to hide one bit of the binary message.
-   - The `encode_frame()` function is responsible for modifying each pixel’s LSB with the binary data.
-   - A special **EOF marker** (`1111111111111110`) is added at the end of the binary data to signal the end of the message.
+1. **Extracting Frames from Video**:
+   - The video is read frame by frame using `cv2.VideoCapture()`, and each frame is saved as an image in a specific directory using the `extract_frames()` function.
 
-3. **Writing the Encoded Video**:
-   - The modified frames are written into a new video file using the `cv2.VideoWriter()` object, resulting in a video that contains the hidden text within its pixel data.
+2. **Converting Text to Binary**:
+   - The secret text is read from a file, converted into its binary representation, and appended with an **EOF marker** (`$$$###$$$`) to signal the end of the message. This is done using the `generate_data()` function.
+
+3. **Encoding Binary Data into Video Frames**:
+   - The `lsb_encode()` function modifies the least significant bits (LSBs) of the red channel for each pixel in the selected frame to hide the binary message. The function allows the user to specify how many LSBs (1 to 8) to modify per pixel.
+
+4. **Writing the Encoded Video**:
+   - After encoding, the modified frames are written into a new video file using `ImageSequenceClip()`, and the original video's audio is added back using `create_video_with_audio()`.
 
 ##### 3.1.2 Decoding Process
 
-1. **Reading the Encoded Video**:
-   - The video is read frame by frame, and the least significant bit of each pixel's color channel is extracted.
+1. **Extracting Frames from the Encoded Video**:
+   - The encoded video is read frame by frame, and the frames are saved as images using the `extract_frames()` function.
 
-2. **Extracting Binary Data**:
-   - The `decode_frame()` function retrieves the LSBs from the RGB channels of each pixel in the frame and constructs the binary data.
+2. **Extracting Binary Data from Frames**:
+   - The `lsb_decode()` function retrieves the LSBs from the red channel of each pixel in the selected frame. The extracted binary data is processed to look for the **EOF marker** (`$$$###$$$`) to determine when the hidden message ends.
 
-3. **Detecting the EOF Marker**:
-   - The program looks for the **EOF marker** (`1111111111111110`) to know when to stop extracting bits.
-
-4. **Converting Binary Data to Text**:
-   - Once the EOF marker is reached, the binary data is converted back into readable text using the `binary_to_text()` function.
+3. **Converting Binary Data to Text**:
+   - Once the EOF marker is detected, the remaining binary data is split into 8-bit chunks and converted back into readable text using the `lsb_decode()` function.
 
 ##### 3.1.3 Notes
 
-- **Video Length**: Ensure that the video has enough frames to hide the entire message. If the message is too long, a warning will be issued.
-- **EOF Marker**: The EOF marker `1111111111111110` is used to detect when the hidden message ends. This ensures that the entire message is retrieved during decoding.
+- **Video Length**: Ensure that the video has enough frames to hide the entire message. If the message is too long, encoding will fail.
+- **EOF Marker**: The EOF marker (`$$$###$$$`) ensures that the hidden message is correctly detected and extracted during the decoding process.
+- **LSB Bits**: The number of LSB bits to modify can be adjusted to control how much data can be encoded into each pixel.
+
   
 ## Setting up
 ### Pre-requisite
