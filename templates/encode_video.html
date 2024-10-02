@@ -92,9 +92,9 @@
                                                         <label for="frame_number" class="block text-sm font-medium text-gray-700">
                                                             Total Frames : {{ session['total_frames']}}
                                                             <br>
-                                                            Choose Available Frame (0 to {{ session['total_frames'] - 1}})
+                                                            Choose Available Frame (1 to {{ session['total_frames'] - 1}})
                                                         </label>
-                                                        <input type="range" id="frame_number" name="frame_number" min="0" max="{{ session['total_frames'] - 1}}" value="1" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
+                                                        <input type="range" id="frame_number" name="frame_number" min="1" max="{{ session['total_frames'] - 1}}" value="1" class="mt-1 block w-full" oninput="frameNumberDisplay.textContent = frame_number.value">
                                                         <div>Selected Frame: <span id="frameNumberDisplay">1</span></div>
                                                     </div>
 
