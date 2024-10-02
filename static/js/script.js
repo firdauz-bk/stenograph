@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // File upload preview and drag & drop for cover object
     setupFileUpload('cover_audio', 'Upload an audio file', ['.mp3', '.wav']);
     setupFileUpload('cover_video', 'Upload a video file', ['.mp4', '.avi', '.mkv']);
-    setupFileUpload('cover_image', 'Upload an image file', ['.png', '.bmp', '.gif']);
+    setupFileUpload('cover_image', 'Upload an image file', ['.png', '.bmp']);
 
     // File upload preview and drag & drop for payload decoding
     setupFileUpload('decode_payload_text', 'Upload file', ['.mp3', '.wav', '.mp4', '.avi', '.png', '.bmp', '.mkv']);
