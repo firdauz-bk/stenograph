@@ -67,6 +67,11 @@ def encode_audio_route():
             flash('Invalid bit size', 'error')
             return redirect(url_for('audio'))
 
+                # Check for the specific case of MP3 payload and PNG cover
+        if allowed_file(cover.filename, {'mp3'}) and allowed_file(payload.filename, {'png'}):
+            flash('Invalid combination: MP3 payload cannot be encoded into a PNG cover', 'error')
+            return redirect(url_for('audio'))
+
         # Validate file types using allowed_file function
         if not allowed_file(payload.filename, {'txt', 'png'}):
             flash('Unsupported payload file type. Allowed types: .txt, .png', 'error')
